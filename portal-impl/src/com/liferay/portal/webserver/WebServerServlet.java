@@ -44,6 +44,7 @@ import com.liferay.portal.service.CompanyLocalServiceUtil;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.util.PropsUtil;
 import com.liferay.portlet.documentlibrary.NoSuchFileEntryException;
 import com.liferay.portlet.documentlibrary.NoSuchFolderException;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
@@ -134,6 +135,7 @@ public class WebServerServlet extends HttpServlet {
 		return true;
 	}
 
+	@Override
 	public void service(
 			HttpServletRequest request, HttpServletResponse response)
 		throws IOException, ServletException {
@@ -207,6 +209,15 @@ public class WebServerServlet extends HttpServlet {
 			HttpServletRequest request, HttpServletResponse response, User user,
 			String path, String[] pathArray)
 		throws Exception {
+
+		if (!GetterUtil.getBoolean(
+				PropsUtil.get(
+					"web.server.servlet.directory.indexing.enabled"))) {
+
+			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+
+			return;
+		}
 
 		long groupId = _getGroupId(user.getCompanyId(), pathArray[0]);
 		long dlFolderId = DLFolderConstants.DEFAULT_PARENT_FOLDER_ID;
@@ -408,6 +419,15 @@ public class WebServerServlet extends HttpServlet {
 	protected void sendGroups(
 			HttpServletResponse response, User user, String path)
 		throws Exception {
+
+		if (!GetterUtil.getBoolean(
+				PropsUtil.get(
+					"web.server.servlet.directory.indexing.enabled"))) {
+
+			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+
+			return;
+		}
 
 		List<WebServerEntry> webServerEntries = new ArrayList<WebServerEntry>();
 
