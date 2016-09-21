@@ -1,0 +1,77 @@
+<ehcache
+	dynamicConfig="false"
+	name="liferay-multi-vm-terracotta"
+	updateCheck="false"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="ehcache.xsd"
+>
+
+	<!--
+	Caches in this file can be clustered and are configured to be clustered via
+	Terracotta.
+	-->
+
+	<defaultCache
+		eternal="false"
+		maxElementsInMemory="10000"
+		overflowToDisk="false"
+		timeToIdleSeconds="600"
+	>
+		<terracotta />
+	</defaultCache>
+	<cache
+		eternal="false"
+		maxElementsInMemory="10000"
+		name="com.liferay.portal.security.permission.PermissionCacheUtil"
+		overflowToDisk="false"
+		timeToIdleSeconds="600"
+	>
+		<terracotta />
+	</cache>
+	<cache
+		eternal="false"
+		maxElementsInMemory="10000"
+		name="com.liferay.portal.service.impl.PortletPreferencesLocalUtil"
+		overflowToDisk="false"
+		timeToIdleSeconds="600"
+	>
+		<terracotta />
+	</cache>
+	<cache
+		eternal="false"
+		maxElementsInMemory="1000"
+		name="com.liferay.portal.servlet.filters.cache.CacheUtil"
+		overflowToDisk="false"
+		timeToLiveSeconds="3600"
+	>
+		<terracotta />
+	</cache>
+	<cache
+		eternal="false"
+		maxElementsInMemory="10000"
+		name="com.liferay.portlet.calendar.service.impl.CalEventLocalUtil"
+		overflowToDisk="false"
+		timeToIdleSeconds="600"
+	>
+		<terracotta />
+	</cache>
+	<cache
+		eternal="false"
+		maxElementsInMemory="1000"
+		name="com.liferay.portlet.journalcontent.util.JournalContent"
+		overflowToDisk="false"
+		timeToLiveSeconds="3600"
+	>
+		<terracotta />
+	</cache>
+	<cache
+		eternal="false"
+		maxElementsInMemory="1000"
+		name="com.liferay.portlet.social.service.impl.SocialEquitySettingLocalServiceImpl"
+		overflowToDisk="false"
+		timeToLiveSeconds="3600"
+	>
+		<terracotta />
+	</cache>
+	<terracottaConfig url="localhost:9510" />
+</ehcache>

@@ -1,0 +1,96 @@
+/**
+ * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ *
+ *
+ *
+ */
+
+package com.liferay.portal.service.impl;
+
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.model.UserTracker;
+import com.liferay.portal.model.UserTrackerPath;
+import com.liferay.portal.service.base.UserTrackerLocalServiceBaseImpl;
+import com.liferay.portal.util.PropsValues;
+
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
+/**
+ * @author Brian Wing Shun Chan
+ */
+public class UserTrackerLocalServiceImpl
+	extends UserTrackerLocalServiceBaseImpl {
+
+	public UserTracker addUserTracker(
+			long companyId, long userId, Date modifiedDate, String sessionId,
+			String remoteAddr, String remoteHost, String userAgent,
+			List<UserTrackerPath> userTrackerPaths)
+		throws SystemException {
+
+		if (PropsValues.SESSION_TRACKER_PERSISTENCE_ENABLED) {
+			long userTrackerId = counterLocalService.increment(
+				UserTracker.class.getName());
+
+			UserTracker userTracker =
+				userTrackerPersistence.create(userTrackerId);
+
+			userTracker.setCompanyId(companyId);
+			userTracker.setUserId(userId);
+			userTracker.setModifiedDate(modifiedDate);
+			userTracker.setSessionId(sessionId);
+			userTracker.setRemoteAddr(remoteAddr);
+			userTracker.setRemoteHost(remoteHost);
+			userTracker.setUserAgent(userAgent);
+
+			userTrackerPersistence.update(userTracker, false);
+
+			Iterator<UserTrackerPath> itr = userTrackerPaths.iterator();
+
+			while (itr.hasNext()) {
+				UserTrackerPath userTrackerPath = itr.next();
+
+				long pathId = counterLocalService.increment(
+					UserTrackerPath.class.getName());
+
+				userTrackerPath.setUserTrackerPathId(pathId);
+				userTrackerPath.setUserTrackerId(userTrackerId);
+
+				userTrackerPathPersistence.update(userTrackerPath, false);
+			}
+
+			return userTracker;
+		}
+		else {
+			return null;
+		}
+	}
+
+	public void deleteUserTracker(long userTrackerId)
+		throws PortalException, SystemException {
+
+		// Paths
+
+		userTrackerPathPersistence.removeByUserTrackerId(userTrackerId);
+
+		// User tracker
+
+		userTrackerPersistence.remove(userTrackerId);
+	}
+
+	public List<UserTracker> getUserTrackers(long companyId, int start, int end)
+		throws SystemException {
+
+		return userTrackerPersistence.findByCompanyId(companyId, start, end);
+	}
+
+}

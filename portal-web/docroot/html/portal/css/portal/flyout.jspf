@@ -1,0 +1,45 @@
+<%--
+/**
+ * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ *
+ *
+ *
+ */
+--%>
+
+.lfr-flyout ul {
+	display: none;
+}
+
+.js li.lfr-flyout {
+	display: block;
+	position: relative;
+}
+
+.js .lfr-flyout-has-children {
+	background: url(<%= themeImagesPath %>/arrows/04_left.png) no-repeat 5px 50%;
+	padding-left: 12px;
+}
+
+.js .lfr-flyout-has-children.send-right {
+	background-image: url(<%= themeImagesPath %>/arrows/04_right.png);
+}
+
+.js .lfr-flyout-has-children ul {
+	min-width: 150px;
+	position: absolute;
+	right: 100%;
+	top: -1px;
+}
+
+.js .lfr-flyout-has-children.send-right ul {
+	left: 100%;
+	right: auto;
+}

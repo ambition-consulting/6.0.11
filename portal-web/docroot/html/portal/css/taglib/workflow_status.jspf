@@ -1,0 +1,55 @@
+<%--
+/**
+ * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ *
+ *
+ *
+ */
+--%>
+
+.taglib-workflow-status {
+	margin: 0.5em 0;
+}
+
+.taglib-workflow-status .workflow-id {
+	background: url(<%= themeImagesPath %>/common/history.png) no-repeat 0 50%;
+	color: #999;
+	padding: 2px 20px;
+}
+
+.taglib-workflow-status .workflow-version {
+	background: url(<%= themeImagesPath %>/common/pages.png) no-repeat 0 50%;
+	color: #999;
+	margin-right: 5px;
+	padding: 2px 20px;
+}
+
+.taglib-workflow-status .workflow-status {
+	background: url(<%= themeImagesPath %>/common/recent_changes.png) no-repeat 0 50%;
+	color: #999;
+	margin-right: 5px;
+	padding: 2px 0 2px 20px;
+}
+
+.taglib-workflow-status .workflow-status .workflow-status-approved {
+	color: green;
+}
+
+.taglib-workflow-status .workflow-status .workflow-status-draft {
+	color: blue;
+}
+
+.taglib-workflow-status .workflow-status .workflow-status-expired {
+	color: red;
+}
+
+.taglib-workflow-status .workflow-status .workflow-status-pending {
+	color: orange;
+}

@@ -1,0 +1,189 @@
+/**
+ * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ *
+ *
+ *
+ */
+
+package com.liferay.portlet.journal.model;
+
+/**
+ * <p>
+ * This class is a wrapper for {@link JournalArticleResource}.
+ * </p>
+ *
+ * @author    Brian Wing Shun Chan
+ * @see       JournalArticleResource
+ * @generated
+ */
+public class JournalArticleResourceWrapper implements JournalArticleResource {
+	public JournalArticleResourceWrapper(
+		JournalArticleResource journalArticleResource) {
+		_journalArticleResource = journalArticleResource;
+	}
+
+	/**
+	* Gets the primary key of this journal article resource.
+	*
+	* @return the primary key of this journal article resource
+	*/
+	public long getPrimaryKey() {
+		return _journalArticleResource.getPrimaryKey();
+	}
+
+	/**
+	* Sets the primary key of this journal article resource
+	*
+	* @param pk the primary key of this journal article resource
+	*/
+	public void setPrimaryKey(long pk) {
+		_journalArticleResource.setPrimaryKey(pk);
+	}
+
+	/**
+	* Gets the uuid of this journal article resource.
+	*
+	* @return the uuid of this journal article resource
+	*/
+	public java.lang.String getUuid() {
+		return _journalArticleResource.getUuid();
+	}
+
+	/**
+	* Sets the uuid of this journal article resource.
+	*
+	* @param uuid the uuid of this journal article resource
+	*/
+	public void setUuid(java.lang.String uuid) {
+		_journalArticleResource.setUuid(uuid);
+	}
+
+	/**
+	* Gets the resource prim key of this journal article resource.
+	*
+	* @return the resource prim key of this journal article resource
+	*/
+	public long getResourcePrimKey() {
+		return _journalArticleResource.getResourcePrimKey();
+	}
+
+	/**
+	* Sets the resource prim key of this journal article resource.
+	*
+	* @param resourcePrimKey the resource prim key of this journal article resource
+	*/
+	public void setResourcePrimKey(long resourcePrimKey) {
+		_journalArticleResource.setResourcePrimKey(resourcePrimKey);
+	}
+
+	/**
+	* Gets the group id of this journal article resource.
+	*
+	* @return the group id of this journal article resource
+	*/
+	public long getGroupId() {
+		return _journalArticleResource.getGroupId();
+	}
+
+	/**
+	* Sets the group id of this journal article resource.
+	*
+	* @param groupId the group id of this journal article resource
+	*/
+	public void setGroupId(long groupId) {
+		_journalArticleResource.setGroupId(groupId);
+	}
+
+	/**
+	* Gets the article id of this journal article resource.
+	*
+	* @return the article id of this journal article resource
+	*/
+	public java.lang.String getArticleId() {
+		return _journalArticleResource.getArticleId();
+	}
+
+	/**
+	* Sets the article id of this journal article resource.
+	*
+	* @param articleId the article id of this journal article resource
+	*/
+	public void setArticleId(java.lang.String articleId) {
+		_journalArticleResource.setArticleId(articleId);
+	}
+
+	public boolean isNew() {
+		return _journalArticleResource.isNew();
+	}
+
+	public void setNew(boolean n) {
+		_journalArticleResource.setNew(n);
+	}
+
+	public boolean isCachedModel() {
+		return _journalArticleResource.isCachedModel();
+	}
+
+	public void setCachedModel(boolean cachedModel) {
+		_journalArticleResource.setCachedModel(cachedModel);
+	}
+
+	public boolean isEscapedModel() {
+		return _journalArticleResource.isEscapedModel();
+	}
+
+	public void setEscapedModel(boolean escapedModel) {
+		_journalArticleResource.setEscapedModel(escapedModel);
+	}
+
+	public java.io.Serializable getPrimaryKeyObj() {
+		return _journalArticleResource.getPrimaryKeyObj();
+	}
+
+	public com.liferay.portlet.expando.model.ExpandoBridge getExpandoBridge() {
+		return _journalArticleResource.getExpandoBridge();
+	}
+
+	public void setExpandoBridgeAttributes(
+		com.liferay.portal.service.ServiceContext serviceContext) {
+		_journalArticleResource.setExpandoBridgeAttributes(serviceContext);
+	}
+
+	public java.lang.Object clone() {
+		return new JournalArticleResourceWrapper((JournalArticleResource)_journalArticleResource.clone());
+	}
+
+	public int compareTo(
+		com.liferay.portlet.journal.model.JournalArticleResource journalArticleResource) {
+		return _journalArticleResource.compareTo(journalArticleResource);
+	}
+
+	public int hashCode() {
+		return _journalArticleResource.hashCode();
+	}
+
+	public com.liferay.portlet.journal.model.JournalArticleResource toEscapedModel() {
+		return new JournalArticleResourceWrapper(_journalArticleResource.toEscapedModel());
+	}
+
+	public java.lang.String toString() {
+		return _journalArticleResource.toString();
+	}
+
+	public java.lang.String toXmlString() {
+		return _journalArticleResource.toXmlString();
+	}
+
+	public JournalArticleResource getWrappedJournalArticleResource() {
+		return _journalArticleResource;
+	}
+
+	private JournalArticleResource _journalArticleResource;
+}

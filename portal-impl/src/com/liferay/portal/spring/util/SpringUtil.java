@@ -1,0 +1,67 @@
+/**
+ * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ *
+ *
+ *
+ */
+
+package com.liferay.portal.spring.util;
+
+import com.liferay.portal.bean.BeanLocatorImpl;
+import com.liferay.portal.kernel.bean.BeanLocator;
+import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.spring.context.ArrayApplicationContext;
+import com.liferay.portal.util.PropsUtil;
+import com.liferay.portal.util.PropsValues;
+
+import java.util.List;
+
+import org.springframework.context.support.AbstractApplicationContext;
+
+/**
+ * <p>
+ * In most cases, SpringUtil.setContext() would have been called by
+ * com.liferay.portal.spring.context.PortalContextLoaderListener, configured in
+ * web.xml for the web application. However, there will be times in which
+ * SpringUtil will be called in a non-web application and, therefore, require
+ * manual instantiation of the application context.
+ * </p>
+ *
+ * @author Michael Young
+ */
+public class SpringUtil {
+
+	public static void loadContext() {
+		List<String> configLocations = ListUtil.fromArray(
+			PropsUtil.getArray(PropsKeys.SPRING_CONFIGS));
+
+		if (PropsValues.PERSISTENCE_PROVIDER.equalsIgnoreCase("jpa")) {
+			configLocations.remove("META-INF/hibernate-spring.xml");
+		}
+		else {
+			configLocations.remove("META-INF/jpa-spring.xml");
+		}
+
+		AbstractApplicationContext applicationContext =
+			new ArrayApplicationContext(
+				configLocations.toArray(new String[configLocations.size()]));
+
+		applicationContext.registerShutdownHook();
+
+		BeanLocator beanLocator = new BeanLocatorImpl(
+			PortalClassLoaderUtil.getClassLoader(), applicationContext);
+
+		PortalBeanLocatorUtil.setBeanLocator(beanLocator);
+	}
+
+}

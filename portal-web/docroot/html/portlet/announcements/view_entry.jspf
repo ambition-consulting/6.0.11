@@ -1,0 +1,69 @@
+<%--
+/**
+ * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ *
+ *
+ *
+ */
+--%>
+
+<%
+boolean readEntry = false;
+
+try {
+	AnnouncementsFlagLocalServiceUtil.getFlag(user.getUserId(), entry.getEntryId(), AnnouncementsFlagConstants.READ);
+
+	readEntry = true;
+}
+catch (NoSuchFlagException nsfe1) {
+	try {
+		AnnouncementsFlagLocalServiceUtil.getFlag(user.getUserId(), entry.getEntryId(), AnnouncementsFlagConstants.HIDDEN);
+
+		readEntry = true;
+	}
+	catch (NoSuchFlagException nsfe2) {
+	}
+}
+
+if (readEntry) {
+	className += " read";
+}
+
+if (entry.getPriority() > 0) {
+	className += " important";
+}
+%>
+
+<div class="entry<%= className %>" id="<portlet:namespace /><%= entry.getEntryId() %>">
+	<h3 class="entry-title">
+		<c:choose>
+			<c:when test="<%= Validator.isNotNull(entry.getUrl()) %>">
+				<a class="entry-url" href="<%= entry.getUrl() %>"><%= HtmlUtil.escape(entry.getTitle()) %></a>
+			</c:when>
+			<c:when test="<%= Validator.isNull(entry.getUrl()) %>">
+				<%= HtmlUtil.escape(entry.getTitle()) %>
+			</c:when>
+		</c:choose>
+
+		<c:if test='<%= !tabs1.equals("preview") %>'>
+			<%@ include file="/html/portlet/announcements/entry_action.jspf" %>
+		</c:if>
+	</h3>
+
+	<%
+	boolean showScopeName = false;
+	%>
+
+	<p class="<%= readEntry ? "aui-helper-hidden" : "" %> entry-content entry-type-<%= entry.getType() %>">
+		<%@ include file="/html/portlet/announcements/entry_scope.jspf" %>
+
+		<%= HtmlUtil.escape(entry.getContent()) %>
+	</p>
+</div>

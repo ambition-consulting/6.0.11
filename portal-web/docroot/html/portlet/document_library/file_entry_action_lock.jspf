@@ -1,0 +1,52 @@
+<%--
+/**
+ * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ *
+ *
+ *
+ */
+--%>
+
+<c:if test="<%= DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.UPDATE) %>">
+	<c:choose>
+		<c:when test="<%= !fileEntry.isLocked() %>">
+			<portlet:actionURL var ="lockURL">
+				<portlet:param name="struts_action" value="/document_library/edit_file_entry" />
+				<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.LOCK %>" />
+				<portlet:param name="redirect" value="<%= currentURL %>" />
+				<portlet:param name="groupId" value="<%= String.valueOf(fileEntry.getGroupId()) %>" />
+				<portlet:param name="folderId" value="<%= String.valueOf(fileEntry.getFolderId()) %>" />
+				<portlet:param name="name" value="<%= HtmlUtil.unescape(fileEntry.getName()) %>" />
+			</portlet:actionURL>
+
+			<liferay-ui:icon
+				image="lock"
+				url="<%= lockURL %>"
+			/>
+		</c:when>
+		<c:otherwise>
+			<c:if test="<%= fileEntry.hasLock(user.getUserId()) || permissionChecker.isCommunityAdmin(fileEntry.getGroupId()) %>">
+				<portlet:actionURL var ="unlockURL">
+					<portlet:param name="struts_action" value="/document_library/edit_file_entry" />
+					<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.UNLOCK %>" />
+					<portlet:param name="redirect" value="<%= currentURL %>" />
+					<portlet:param name="groupId" value="<%= String.valueOf(fileEntry.getGroupId()) %>" />
+					<portlet:param name="folderId" value="<%= String.valueOf(fileEntry.getFolderId()) %>" />
+					<portlet:param name="name" value="<%= HtmlUtil.unescape(fileEntry.getName()) %>" />
+				</portlet:actionURL>
+
+				<liferay-ui:icon
+					image="unlock"
+					url="<%= unlockURL %>"
+				/>
+			</c:if>
+		</c:otherwise>
+	</c:choose>
+</c:if>

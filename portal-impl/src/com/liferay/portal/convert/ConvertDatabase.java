@@ -1,0 +1,256 @@
+/**
+ * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ *
+ *
+ *
+ */
+
+package com.liferay.portal.convert;
+
+import com.liferay.mail.model.CyrusUser;
+import com.liferay.mail.model.CyrusVirtual;
+import com.liferay.portal.kernel.dao.db.DB;
+import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
+import com.liferay.portal.kernel.dao.jdbc.DataAccess;
+import com.liferay.portal.kernel.dao.jdbc.DataSourceFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.servlet.PortletServlet;
+import com.liferay.portal.kernel.servlet.ServletContextPool;
+import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Tuple;
+import com.liferay.portal.model.ModelHintsUtil;
+import com.liferay.portal.spring.hibernate.DialectDetector;
+import com.liferay.portal.upgrade.util.Table;
+import com.liferay.portal.util.MaintenanceUtil;
+import com.liferay.portal.util.ShutdownUtil;
+
+import java.lang.reflect.Field;
+
+import java.sql.Connection;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.ServletContext;
+
+import javax.sql.DataSource;
+
+import org.hibernate.dialect.Dialect;
+
+/**
+ * @author Alexander Chow
+ */
+public class ConvertDatabase extends ConvertProcess {
+
+	public String getDescription() {
+		return "migrate-data-from-one-database-to-another";
+	}
+
+	public String getParameterDescription() {
+		return "please-enter-jdbc-information-for-new-database";
+	}
+
+	public String[] getParameterNames() {
+		return new String[] {
+			"jdbc-driver-class-name", "jdbc-url", "jdbc-user-name",
+			"jdbc-password"
+		};
+	}
+
+	public boolean isEnabled() {
+		return true;
+	}
+
+	protected void doConvert() throws Exception {
+		DataSource dataSource = getDataSource();
+
+		Dialect dialect = DialectDetector.getDialect(dataSource);
+
+		DB db = DBFactoryUtil.getDB(dialect);
+
+		List<String> modelNames = ModelHintsUtil.getModels();
+
+		List<Tuple> tableDetails = new ArrayList<Tuple>();
+
+		Connection connection = dataSource.getConnection();
+
+		try {
+			MaintenanceUtil.appendStatus(
+				"Collecting information for database tables to migration");
+
+			for (String modelName : modelNames) {
+				if (!modelName.contains(".model.")) {
+					continue;
+				}
+
+				String implClassName = modelName.replaceFirst(
+					"(\\.model\\.)(\\p{Upper}.*)", "$1impl.$2Impl");
+
+				if (_log.isDebugEnabled()) {
+					_log.debug("Loading class " + implClassName);
+				}
+
+				Class<?> implClass = getImplClass(implClassName);
+
+				if (implClass == null) {
+					_log.error("Unable to load class " + implClassName);
+
+					continue;
+				}
+
+				Field[] fields = implClass.getFields();
+
+				for (Field field : fields) {
+					Tuple tuple = null;
+
+					String fieldName = field.getName();
+
+					if (fieldName.equals("TABLE_NAME")) {
+						tuple = getTableDetails(implClass, field, fieldName);
+					}
+					else if (fieldName.startsWith("MAPPING_TABLE_") &&
+							 fieldName.endsWith("_NAME")) {
+
+						tuple = getTableDetails(implClass, field, fieldName);
+					}
+
+					if (tuple != null) {
+						tableDetails.add(tuple);
+					}
+				}
+			}
+
+			for (Tuple tuple : _UNMAPPED_TABLES) {
+				tableDetails.add(tuple);
+			}
+
+			if (_log.isDebugEnabled()) {
+				_log.debug("Migrating database tables");
+			}
+
+			for (int i = 0; i < tableDetails.size(); i++) {
+				if ((i > 0) && (i % (tableDetails.size() / 4) == 0)) {
+					MaintenanceUtil.appendStatus(
+						 (i * 100 / tableDetails.size()) + "%");
+				}
+
+				Tuple tuple = tableDetails.get(i);
+
+				String table = (String)tuple.getObject(0);
+				Object[][] columns = (Object[][])tuple.getObject(1);
+				String sqlCreate = (String)tuple.getObject(2);
+
+				migrateTable(db, connection, table, columns, sqlCreate);
+			}
+		}
+		finally {
+			DataAccess.cleanUp(connection);
+		}
+
+		MaintenanceUtil.appendStatus(
+			"Please change your JDBC settings before restarting server");
+
+		ShutdownUtil.shutdown(0);
+	}
+
+	protected DataSource getDataSource() throws Exception {
+		String[] values = getParameterValues();
+
+		String driverClassName = values[0];
+		String url = values[1];
+		String userName = values[2];
+		String password = values[3];
+
+		return DataSourceFactoryUtil.initDataSource(
+			driverClassName, url, userName, password);
+	}
+
+	public Class<?> getImplClass(String implClassName) throws Exception {
+		try {
+			ClassLoader classLoader = PortalClassLoaderUtil.getClassLoader();
+
+			return classLoader.loadClass(implClassName);
+		}
+		catch (Exception e) {
+		}
+
+		for (String servletContextName : ServletContextPool.keySet()) {
+			try {
+				ServletContext servletContext = ServletContextPool.get(
+					servletContextName);
+
+				ClassLoader classLoader =
+					(ClassLoader)servletContext.getAttribute(
+						PortletServlet.PORTLET_CLASS_LOADER);
+
+				return classLoader.loadClass(implClassName);
+			}
+			catch (Exception e) {
+			}
+		}
+
+		return null;
+	}
+
+	protected Tuple getTableDetails(
+		Class<?> implClass, Field tableField, String tableFieldVar) {
+
+		try {
+			String columnsFieldVar = StringUtil.replace(
+				tableFieldVar, "_NAME", "_COLUMNS");
+			String sqlCreateFieldVar = StringUtil.replace(
+				tableFieldVar, "_NAME", "_SQL_CREATE");
+
+			Field columnsField = implClass.getField(columnsFieldVar);
+			Field sqlCreateField = implClass.getField(sqlCreateFieldVar);
+
+			String table = (String)tableField.get(StringPool.BLANK);
+			Object[][] columns = (Object[][])columnsField.get(new Object[0][0]);
+			String sqlCreate = (String)sqlCreateField.get(StringPool.BLANK);
+
+			return new Tuple(table, columns, sqlCreate);
+		}
+		catch (Exception e) {
+		}
+
+		return null;
+	}
+
+	protected void migrateTable(
+			DB db, Connection connection, String tableName, Object[][] columns,
+			String sqlCreate)
+		throws Exception {
+
+		Table table = new Table(tableName, columns);
+
+		String tempFileName = table.generateTempFile();
+
+		db.runSQL(connection, sqlCreate);
+
+		if (tempFileName != null) {
+			table.populateTable(tempFileName, connection);
+		}
+	}
+
+	private static final Tuple[] _UNMAPPED_TABLES = new Tuple[] {
+		new Tuple(
+			CyrusUser.TABLE_NAME, CyrusUser.TABLE_COLUMNS,
+			CyrusUser.TABLE_SQL_CREATE),
+		new Tuple(
+			CyrusVirtual.TABLE_NAME, CyrusVirtual.TABLE_COLUMNS,
+			CyrusVirtual.TABLE_SQL_CREATE)
+	};
+
+	private static Log _log = LogFactoryUtil.getLog(ConvertDatabase.class);
+
+}

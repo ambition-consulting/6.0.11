@@ -1,0 +1,162 @@
+/**
+ * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ *
+ *
+ *
+ */
+
+package com.liferay.portal.servlet.taglib.ui;
+
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.JavaConstants;
+import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.model.Group;
+import com.liferay.portal.model.Layout;
+import com.liferay.portal.model.Role;
+import com.liferay.portal.model.RoleConstants;
+import com.liferay.portal.security.permission.ActionKeys;
+import com.liferay.portal.security.permission.ResourceActionsUtil;
+import com.liferay.portal.service.GroupLocalServiceUtil;
+import com.liferay.portal.service.RoleLocalServiceUtil;
+import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portal.util.WebKeys;
+
+import java.util.List;
+
+import javax.portlet.RenderResponse;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.jsp.JspException;
+import javax.servlet.jsp.PageContext;
+
+/**
+ * @author Brian Chan
+ * @author Jorge Ferrer
+ */
+public class InputPermissionsParamsTagUtil {
+
+	public static String getDefaultViewRole(
+			String modelName, ThemeDisplay themeDisplay)
+		throws PortalException, SystemException {
+
+		Layout layout = themeDisplay.getLayout();
+
+		Group layoutGroup = layout.getGroup();
+
+		List<String> guestDefaultActions =
+			ResourceActionsUtil.getModelResourceGuestDefaultActions(
+				modelName);
+
+		if (layoutGroup.isControlPanel()) {
+			Group group = themeDisplay.getScopeGroup();
+
+			if (!group.hasPrivateLayouts() &&
+				guestDefaultActions.contains(ActionKeys.VIEW)) {
+
+				return RoleConstants.GUEST;
+			}
+		}
+		else if (layout.isPublicLayout() &&
+				 guestDefaultActions.contains(ActionKeys.VIEW)) {
+
+			return RoleConstants.GUEST;
+		}
+		else {
+			Group parentGroup = GroupLocalServiceUtil.getGroup(
+				themeDisplay.getParentGroupId());
+
+			Role defaultGroupRole = RoleLocalServiceUtil.getDefaultGroupRole(
+				parentGroup.getGroupId());
+
+			return defaultGroupRole.getName();
+		}
+
+		return StringPool.BLANK;
+	}
+
+	public static void doEndTag(String modelName, PageContext pageContext)
+		throws JspException {
+
+		try {
+			HttpServletRequest request =
+				(HttpServletRequest)pageContext.getRequest();
+
+			RenderResponse renderResponse =
+				(RenderResponse)request.getAttribute(
+					JavaConstants.JAVAX_PORTLET_RESPONSE);
+
+			ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+			Group group = themeDisplay.getScopeGroup();
+
+			List<String> supportedActions =
+				ResourceActionsUtil.getModelResourceActions(modelName);
+			List<String> communityDefaultActions =
+				ResourceActionsUtil.getModelResourceCommunityDefaultActions(
+					modelName);
+			List<String> guestDefaultActions =
+				ResourceActionsUtil.getModelResourceGuestDefaultActions(
+					modelName);
+			List<String> guestUnsupportedActions =
+				ResourceActionsUtil.getModelResourceGuestUnsupportedActions(
+					modelName);
+
+			StringBundler sb = new StringBundler();
+
+			for (int i = 0; i < supportedActions.size(); i++) {
+				String action = supportedActions.get(i);
+
+				boolean communityChecked = communityDefaultActions.contains(
+					action);
+				boolean guestChecked = guestDefaultActions.contains(action);
+				boolean guestDisabled = guestUnsupportedActions.contains(
+					action);
+
+				if (guestDisabled) {
+					guestChecked = false;
+				}
+
+				if (group.isCommunity() || group.isOrganization()) {
+					if (communityChecked) {
+						sb.append(StringPool.AMPERSAND);
+						sb.append(renderResponse.getNamespace());
+						sb.append("communityPermissions=");
+						sb.append(HttpUtil.encodeURL(action));
+					}
+				}
+
+				if (guestChecked) {
+					sb.append(StringPool.AMPERSAND);
+					sb.append(renderResponse.getNamespace());
+					sb.append("guestPermissions=");
+					sb.append(HttpUtil.encodeURL(action));
+				}
+			}
+
+			String inputPermissionsViewRole = getDefaultViewRole(
+				modelName, themeDisplay);
+
+			sb.append(StringPool.AMPERSAND);
+			sb.append(renderResponse.getNamespace());
+			sb.append("inputPermissionsViewRole=");
+			sb.append(HttpUtil.encodeURL(inputPermissionsViewRole));
+
+			pageContext.getOut().print(sb.toString());
+		}
+		catch (Exception e) {
+			throw new JspException(e);
+		}
+	}
+
+}

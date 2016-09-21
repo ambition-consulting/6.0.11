@@ -1,0 +1,61 @@
+/**
+ * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ *
+ *
+ *
+ */
+
+package com.liferay.portal.kernel.util;
+
+import java.io.InputStream;
+
+/**
+ * @author Bruno Farache
+ */
+public class DocumentConversionUtil {
+
+	public static InputStream convert(
+			String id, InputStream is, String sourceExtension,
+			String targetExtension)
+		throws Exception {
+
+		Object returnObj = PortalClassInvoker.invoke(
+			false, _convertMethodKey, id, is, sourceExtension, targetExtension);
+
+		if (returnObj != null) {
+			return (InputStream)returnObj;
+		}
+		else {
+			return null;
+		}
+	}
+
+	public static String[] getConversions(String extension) throws Exception {
+		Object returnObj = PortalClassInvoker.invoke(
+			false, _getConversionsMethodKey, extension);
+
+		if (returnObj != null) {
+			return (String[])returnObj;
+		}
+		else {
+			return null;
+		}
+	}
+
+	private static final String _CLASS_NAME =
+		"com.liferay.portlet.documentlibrary.util.DocumentConversionUtil";
+
+	private static MethodKey _convertMethodKey = new MethodKey(
+		_CLASS_NAME, "convert", String.class, InputStream.class, String.class,
+		String.class);
+	private static MethodKey _getConversionsMethodKey = new MethodKey(
+		_CLASS_NAME, "getConversions", String.class);
+
+}
