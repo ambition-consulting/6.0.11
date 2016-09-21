@@ -1,21 +1,22 @@
 /**
  * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.portlet;
 
 import com.liferay.portal.kernel.portlet.LiferayPortlet;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.security.permission.PermissionThreadLocal;
@@ -148,6 +149,27 @@ public class StrutsPortlet extends LiferayPortlet {
 	public void init(PortletConfig portletConfig) throws PortletException {
 		super.init(portletConfig);
 
+		templatePath = getInitParameter("template-path");
+
+		if (Validator.isNull(templatePath)) {
+			templatePath = StringPool.SLASH;
+		}
+		else if (templatePath.contains(StringPool.BACK_SLASH) ||
+				 templatePath.contains(StringPool.DOUBLE_SLASH) ||
+				 templatePath.contains(StringPool.PERIOD) ||
+				 templatePath.contains(StringPool.SPACE)) {
+
+			throw new PortletException(
+				"template-path " + templatePath + " has invalid characters");
+		}
+		else if (!templatePath.startsWith(StringPool.SLASH) ||
+				 !templatePath.endsWith(StringPool.SLASH)) {
+
+			throw new PortletException(
+				"template-path " + templatePath +
+					" must start and end with a /");
+		}
+
 		aboutAction = getInitParameter("about-action");
 		configAction = getInitParameter("config-action");
 		editAction = getInitParameter("edit-action");
@@ -162,6 +184,8 @@ public class StrutsPortlet extends LiferayPortlet {
 			getInitParameter("copy-request-parameters"), true);
 
 		_portletConfig = (PortletConfigImpl)portletConfig;
+
+		initValidPaths(templatePath, ".jsp");
 	}
 
 	public void processAction(
@@ -201,6 +225,10 @@ public class StrutsPortlet extends LiferayPortlet {
 	public void serveResource(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
 		throws IOException, PortletException {
+
+		String resourceId = resourceRequest.getResourceID();
+
+		checkPath(resourceId);
 
 		resourceRequest.setAttribute(WebKeys.PORTLET_STRUTS_ACTION, viewAction);
 
@@ -280,6 +308,7 @@ public class StrutsPortlet extends LiferayPortlet {
 	protected String helpAction;
 	protected String previewAction;
 	protected String printAction;
+	protected String templatePath;
 	protected String viewAction;
 	protected boolean copyRequestParameters;
 

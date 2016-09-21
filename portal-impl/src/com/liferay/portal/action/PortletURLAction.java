@@ -1,15 +1,15 @@
 /**
  * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.portal.action;
@@ -17,10 +17,14 @@ package com.liferay.portal.action;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletModeFactory;
 import com.liferay.portal.kernel.portlet.WindowStateFactory;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.PortletConstants;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.PortletURLImpl;
 import com.liferay.util.servlet.ServletResponseUtil;
@@ -40,13 +44,38 @@ import org.apache.struts.action.ActionMapping;
 
 /**
  * @author Eduardo Lundgren
+ * @deprecated As of 6.2.0 with no direct replacement
  */
 public class PortletURLAction extends Action {
 
+	public static final boolean PORTLET_URL_GENERATE_BY_PATH_ENABLED =
+		GetterUtil.getBoolean(PropsUtil.get(
+			"portlet.url.generate.by.path.enabled"));
+
+	public static final String[] PORTLET_URL_GENERATE_BY_PATH_WHITELIST =
+		PropsUtil.getArray("portlet.url.generate.by.path.whitelist");
+
+	@Override
 	public ActionForward execute(
 			ActionMapping mapping, ActionForm form, HttpServletRequest request,
 			HttpServletResponse response)
 		throws Exception {
+
+		String portletId = ParamUtil.getString(request, "portletId");
+
+		String rootPortletId = PortletConstants.getRootPortletId(portletId);
+
+		String[] portletUrlGenerateByPathWhitelist =
+			PORTLET_URL_GENERATE_BY_PATH_WHITELIST;
+
+		if (!PORTLET_URL_GENERATE_BY_PATH_ENABLED &&
+			!ArrayUtil.contains(
+				portletUrlGenerateByPathWhitelist, rootPortletId)) {
+
+			response.sendError(HttpServletResponse.SC_FORBIDDEN);
+
+			return null;
+		}
 
 		try {
 			String portletURL = getPortletURL(request);

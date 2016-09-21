@@ -1,21 +1,23 @@
 /**
- * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-2010 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.portal.util;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portlet.PortalPreferences;
 import com.liferay.portlet.PortletPreferencesFactoryUtil;
 
@@ -48,15 +50,48 @@ public class SessionClicks {
 		HttpServletRequest request, String key, String value) {
 
 		try {
+			if ((key.length() > _SESSION_CLICKS_MAX_SIZE_TERMS) ||
+				(value.length() > _SESSION_CLICKS_MAX_SIZE_TERMS)) {
+
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						"Session clicks has attempted to exceed the maximum " +
+							"size allowed for keys or values with {key=" + key +
+								", value=" + value + "}");
+				}
+
+				return;
+			}
+
 			PortalPreferences preferences =
 				PortletPreferencesFactoryUtil.getPortalPreferences(request);
 
-			preferences.setValue(CLASS_NAME, key, value);
+			int size = preferences.size();
+
+			if (size <= _SESSION_CLICKS_MAX_ALLOWED_VALUES) {
+				preferences.setValue(CLASS_NAME, key, value);
+			}
+			else {
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						"Session clicks has attempted to exceed the maximum " +
+							"number of allowed values with {key=" + key +
+								", value=" + value + "}");
+				}
+			}
 		}
 		catch (Exception e) {
 			_log.error(e, e);
 		}
 	}
+
+	private static final int _SESSION_CLICKS_MAX_ALLOWED_VALUES =
+		GetterUtil.getInteger(
+			PropsUtil.get("session.clicks.max.allowed.values"), 1024);
+
+	private static final int _SESSION_CLICKS_MAX_SIZE_TERMS =
+		GetterUtil.getInteger(
+			PropsUtil.get("session.clicks.max.size.terms"), 1024);
 
 	private static Log _log = LogFactoryUtil.getLog(SessionClicks.class);
 

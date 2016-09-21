@@ -1,15 +1,15 @@
 /**
  * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.portal.lar;
@@ -21,6 +21,7 @@ import com.liferay.portal.NoSuchLayoutException;
 import com.liferay.portal.PortletIdException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
 import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.lar.PortletDataHandler;
 import com.liferay.portal.kernel.lar.PortletDataHandlerKeys;
@@ -61,9 +62,11 @@ import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.service.persistence.PortletPreferencesUtil;
 import com.liferay.portal.service.persistence.UserUtil;
 import com.liferay.portal.util.PortletKeys;
+import com.liferay.portal.xml.StAXReaderUtil;
 import com.liferay.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portlet.PortletPreferencesImpl;
 import com.liferay.portlet.PortletPreferencesSerializer;
+import com.liferay.portlet.Preference;
 import com.liferay.portlet.asset.NoSuchCategoryException;
 import com.liferay.portlet.asset.model.AssetCategory;
 import com.liferay.portlet.asset.model.AssetCategoryConstants;
@@ -79,9 +82,17 @@ import com.liferay.portlet.social.util.SocialActivityThreadLocal;
 import java.io.File;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.EndElement;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
 
 import org.apache.commons.lang.time.StopWatch;
 
@@ -793,7 +804,10 @@ public class PortletImporter {
 				}
 
 				PortletPreferencesLocalServiceUtil.updatePreferences(
-					ownerId, ownerType, plid, portletId, xml);
+					ownerId, ownerType, plid, portletId,
+					_fromXML(
+						context.getCompanyId(), ownerId, ownerType, plid,
+						portletId, xml));
 			}
 		}
 
@@ -1065,6 +1079,117 @@ public class PortletImporter {
 		catch (Exception e) {
 			throw new SystemException(e);
 		}
+	}
+
+	private PortletPreferencesImpl _fromXML(
+			long companyId, long ownerId, int ownerType, long plid,
+			String portletId, String xml)
+		throws SystemException {
+
+		try {
+			Map<String, Preference> preferencesMap =
+				new HashMap<String, Preference>();
+
+			_populateMap(xml, preferencesMap);
+
+			return new PortletPreferencesImpl(
+				companyId, ownerId, ownerType, plid, portletId,
+				preferencesMap);
+		}
+		catch (SystemException se) {
+			throw se;
+		}
+	}
+
+	private void _populateMap(
+			String xml, Map<String, Preference> preferencesMap)
+		throws SystemException {
+
+		if (Validator.isNull(xml)) {
+			return;
+		}
+
+		XMLEventReader xmlEventReader = null;
+
+		try {
+			XMLInputFactory xmlInputFactory =
+				StAXReaderUtil.getXMLInputFactory();
+
+			xmlEventReader = xmlInputFactory.createXMLEventReader(
+				new UnsyncStringReader(xml));
+
+			while (xmlEventReader.hasNext()) {
+				XMLEvent xmlEvent = xmlEventReader.nextEvent();
+
+				if (xmlEvent.isStartElement()) {
+					StartElement startElement = xmlEvent.asStartElement();
+
+					String elementName = startElement.getName().getLocalPart();
+
+					if (elementName.equals("preference")) {
+						Preference preference = _readPreference(xmlEventReader);
+
+						preferencesMap.put(preference.getName(), preference);
+					}
+				}
+			}
+		}
+		catch (XMLStreamException xse) {
+			throw new SystemException(xse);
+		}
+		finally {
+			if (xmlEventReader != null) {
+				try {
+					xmlEventReader.close();
+				}
+				catch (XMLStreamException xse) {
+				}
+			}
+		}
+	}
+
+	private Preference _readPreference(XMLEventReader xmlEventReader)
+		throws XMLStreamException {
+
+		String name = null;
+		List<String> values = new ArrayList<String>();
+		boolean readOnly = false;
+
+		while (xmlEventReader.hasNext()) {
+			XMLEvent xmlEvent = xmlEventReader.nextEvent();
+
+			if (xmlEvent.isStartElement()) {
+				StartElement startElement = xmlEvent.asStartElement();
+
+				String elementName = startElement.getName().getLocalPart();
+
+				if (elementName.equals("name")) {
+					name = StAXReaderUtil.read(xmlEventReader);
+				}
+				else if (elementName.equals("value")) {
+					String value = StAXReaderUtil.read(xmlEventReader);
+
+					values.add(value);
+				}
+				else if (elementName.equals("read-only")) {
+					String value = StAXReaderUtil.read(xmlEventReader);
+
+					readOnly = GetterUtil.getBoolean(value);
+				}
+			}
+			else if (xmlEvent.isEndElement()) {
+				EndElement endElement = xmlEvent.asEndElement();
+
+				String elementName = endElement.getName().getLocalPart();
+
+				if (elementName.equals("preference")) {
+					break;
+				}
+			}
+		}
+
+		return new Preference(
+			name, values.toArray(new String[values.size()]), readOnly);
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(PortletImporter.class);

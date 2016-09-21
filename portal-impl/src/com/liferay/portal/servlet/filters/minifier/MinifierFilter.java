@@ -1,15 +1,15 @@
 /**
  * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.portal.servlet.filters.minifier;
@@ -33,6 +33,7 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.servlet.filters.BasePortalFilter;
 import com.liferay.portal.util.JavaScriptBundleUtil;
+import com.liferay.portal.util.LimitedFilesCache;
 import com.liferay.portal.util.MinifierUtil;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
@@ -66,6 +67,16 @@ public class MinifierFilter extends BasePortalFilter {
 
 		if (Validator.isNull(_servletContextName)) {
 			_tempDir += "/portal";
+		}
+
+		if (_MINIFIER_FILES_LIMIT > 0) {
+			_limitedFilesCache = new LimitedFilesCache<String>(
+				_MINIFIER_FILES_LIMIT);
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(
+					"Minifier files limit " + _MINIFIER_FILES_LIMIT);
+			}
 		}
 	}
 
@@ -197,6 +208,10 @@ public class MinifierFilter extends BasePortalFilter {
 			minifierBundleId);
 
 		File cacheFile = new File(cacheFileName);
+
+		if (_limitedFilesCache != null) {
+			_limitedFilesCache.put(cacheFileName);
+		}
 
 		if (cacheFile.exists()) {
 			boolean staleCache = false;
@@ -470,8 +485,12 @@ public class MinifierFilter extends BasePortalFilter {
 	private static Pattern _pattern = Pattern.compile(
 		"^(\\.ie|\\.js\\.ie)([^}]*)}", Pattern.MULTILINE);
 
+	private LimitedFilesCache<String> _limitedFilesCache;
 	private ServletContext _servletContext;
 	private String _servletContextName;
 	private String _tempDir = _TEMP_DIR;
+
+	private static final int _MINIFIER_FILES_LIMIT =
+		GetterUtil.getInteger(PropsUtil.get("minifier.files.limit"), 1000);
 
 }

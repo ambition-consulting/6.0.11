@@ -1,0 +1,43 @@
+From f2cfc46422916c4d831577b591c4923d30f418ec Mon Sep 17 00:00:00 2001
+From: Andreas Lehmkuhler <lehmi@apache.org>
+Date: Mon, 28 Jul 2014 17:22:16 +0000
+Subject: [PATCH] PDFBOX-2212: fixed the EOF-detection as proposed by Tilman
+ Hausherr, added an unit test to demonstrate the fix
+
+git-svn-id: https://svn.apache.org/repos/asf/pdfbox/branches/1.8@1614082 13f79535-47bb-0310-9956-ffa450edef68
+---
+ .../apache/fontbox/ttf/MemoryTTFDataStream.java    | 10 ++--
+ .../fontbox/ttf/TestMemoryTTFDataStream.java       | 55 ++++++++++++++++++++++
+ 2 files changed, 60 insertions(+), 5 deletions(-)
+ create mode 100644 fontbox/src/test/java/org/apache/fontbox/ttf/TestMemoryTTFDataStream.java
+
+diff --git a/org/apache/fontbox/ttf/MemoryTTFDataStream.java b/org/apache/fontbox/ttf/MemoryTTFDataStream.java
+index 89c0bbb..4ba94be 100644
+--- a/org/apache/fontbox/ttf/MemoryTTFDataStream.java
++++ b/org/apache/fontbox/ttf/MemoryTTFDataStream.java
+@@ -25,8 +25,8 @@
+ /**
+  * An interface into a data stream.
+  * 
+- * @author Ben Litchfield (ben@benlitchfield.com)
+- * @version $Revision: 1.2 $
++ * @author Ben Litchfield
++ * 
+  */
+ public class MemoryTTFDataStream extends TTFDataStream 
+ {
+@@ -98,11 +98,11 @@ public int readSignedInt() throws IOException
+      */
+     public int read() throws IOException
+     {
+-        int retval = -1;
+-        if( currentPosition < data.length )
++        if (currentPosition >= data.length)
+         {
+-            retval = data[currentPosition];
++            return -1;
+         }
++        int retval = data[currentPosition];
+         currentPosition++;
+         return (retval+256)%256;
+     }

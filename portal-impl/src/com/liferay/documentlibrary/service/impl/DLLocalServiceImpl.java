@@ -1,15 +1,15 @@
 /**
  * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.documentlibrary.service.impl;
@@ -119,6 +119,10 @@ public class DLLocalServiceImpl implements DLLocalService {
 			long companyId, String portletId, long repositoryId, String dirName)
 		throws PortalException, SystemException {
 
+		if (!isValidName(dirName)) {
+			throw new DirectoryNameException(dirName);
+		}
+
 		hook.deleteDirectory(companyId, portletId, repositoryId, dirName);
 	}
 
@@ -126,6 +130,8 @@ public class DLLocalServiceImpl implements DLLocalService {
 			long companyId, String portletId, long repositoryId,
 			String fileName)
 		throws PortalException, SystemException {
+
+		validate(fileName, false);
 
 		hook.deleteFile(companyId, portletId, repositoryId, fileName);
 	}
@@ -135,12 +141,16 @@ public class DLLocalServiceImpl implements DLLocalService {
 			String fileName, String versionNumber)
 		throws PortalException, SystemException {
 
+		validate(fileName, false);
+
 		hook.deleteFile(
 			companyId, portletId, repositoryId, fileName, versionNumber);
 	}
 
 	public byte[] getFile(long companyId, long repositoryId, String fileName)
 		throws PortalException, SystemException {
+
+		validate(fileName, false);
 
 		return hook.getFile(companyId, repositoryId, fileName);
 	}
@@ -150,12 +160,16 @@ public class DLLocalServiceImpl implements DLLocalService {
 			String versionNumber)
 		throws PortalException, SystemException {
 
+		validate(fileName, false);
+
 		return hook.getFile(companyId, repositoryId, fileName, versionNumber);
 	}
 
 	public InputStream getFileAsStream(
 			long companyId, long repositoryId, String fileName)
 		throws PortalException, SystemException {
+
+		validate(fileName, false);
 
 		return hook.getFileAsStream(companyId, repositoryId, fileName);
 	}
@@ -165,6 +179,8 @@ public class DLLocalServiceImpl implements DLLocalService {
 			String versionNumber)
 		throws PortalException, SystemException {
 
+		validate(fileName, false);
+
 		return hook.getFileAsStream(
 			companyId, repositoryId, fileName, versionNumber);
 	}
@@ -173,12 +189,18 @@ public class DLLocalServiceImpl implements DLLocalService {
 			long companyId, long repositoryId, String dirName)
 		throws PortalException, SystemException {
 
+		if (!isValidName(dirName)) {
+			throw new DirectoryNameException(dirName);
+		}
+
 		return hook.getFileNames(companyId, repositoryId, dirName);
 	}
 
 	public long getFileSize(
 			long companyId, long repositoryId, String fileName)
 		throws PortalException, SystemException {
+
+		validate(fileName, false);
 
 		return hook.getFileSize(companyId, repositoryId, fileName);
 	}
@@ -187,6 +209,8 @@ public class DLLocalServiceImpl implements DLLocalService {
 			long companyId, long repositoryId, String fileName,
 			String versionNumber)
 		throws PortalException, SystemException {
+
+		validate(fileName, false);
 
 		return hook.hasFile(companyId, repositoryId, fileName, versionNumber);
 	}
@@ -278,6 +302,8 @@ public class DLLocalServiceImpl implements DLLocalService {
 			long newRepositoryId, String fileName, long fileEntryId)
 		throws PortalException, SystemException {
 
+		validate(fileName, false);
+
 		hook.updateFile(
 			companyId, portletId, groupId, repositoryId, newRepositoryId,
 			fileName, fileEntryId);
@@ -287,6 +313,9 @@ public class DLLocalServiceImpl implements DLLocalService {
 			long companyId, String portletId, long groupId, long repositoryId,
 			String fileName, String newFileName, boolean reindex)
 		throws PortalException, SystemException {
+
+		validate(fileName, false);
+		validate(newFileName, false);
 
 		hook.updateFile(
 			companyId, portletId, groupId, repositoryId, fileName, newFileName,

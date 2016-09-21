@@ -1,15 +1,15 @@
 /**
  * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.portal.util;
@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 
-import org.openid4java.consumer.ConsumerException;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.InMemoryConsumerAssociationStore;
 import org.openid4java.consumer.InMemoryNonceVerifier;
@@ -74,18 +73,14 @@ public class OpenIdUtil {
 	}
 
 	private void _initialize() {
-		try {
-			if (_manager == null) {
-				_manager = new ConsumerManager();
+		if (_manager != null) {
+			return;
+		}
 
-				_manager.setAssociations(
-					new InMemoryConsumerAssociationStore());
-				_manager.setNonceVerifier(new InMemoryNonceVerifier(5000));
-			}
-		}
-		catch (ConsumerException ce) {
-			_log.error(ce.getMessage());
-		}
+		_manager = new ConsumerManager();
+
+		_manager.setAssociations(new InMemoryConsumerAssociationStore());
+		_manager.setNonceVerifier(new InMemoryNonceVerifier(5000));
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(OpenIdUtil.class);

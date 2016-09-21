@@ -1,15 +1,15 @@
 /**
  * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.util.bridges.scripting;
@@ -19,12 +19,14 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.scripting.ScriptingException;
 import com.liferay.portal.kernel.scripting.ScriptingUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
+import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
@@ -57,7 +59,29 @@ import javax.portlet.ResourceResponse;
  */
 public class ScriptingPortlet extends GenericPortlet {
 
+	@Override
 	public void init() {
+		filePath = getInitParameter("file-path");
+
+		if (Validator.isNull(filePath)) {
+			filePath = StringPool.SLASH;
+		}
+		else if (filePath.contains(StringPool.BACK_SLASH) ||
+				 filePath.contains(StringPool.DOUBLE_SLASH) ||
+				 filePath.contains(StringPool.PERIOD) ||
+				 filePath.contains(StringPool.SPACE)) {
+
+			throw new RuntimeException(
+				"template-path " + filePath + " has invalid characters");
+		}
+		else if (!filePath.startsWith(StringPool.SLASH) ||
+				 !filePath.endsWith(StringPool.SLASH)) {
+
+			throw new RuntimeException(
+				"template-path " + filePath +
+					" must start and end with a /");
+		}
+
 		actionFile = getInitParameter("action-file");
 		editFile = getInitParameter("edit-file");
 		helpFile = getInitParameter("help-file");
@@ -68,6 +92,7 @@ public class ScriptingPortlet extends GenericPortlet {
 		globalFiles = StringUtil.split(getInitParameter("global-files"));
 	}
 
+	@Override
 	public void doDispatch(
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws IOException, PortletException {
@@ -82,6 +107,7 @@ public class ScriptingPortlet extends GenericPortlet {
 		}
 	}
 
+	@Override
 	public void doEdit(
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws IOException, PortletException {
@@ -94,6 +120,7 @@ public class ScriptingPortlet extends GenericPortlet {
 		}
 	}
 
+	@Override
 	public void doHelp(
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws IOException {
@@ -101,6 +128,7 @@ public class ScriptingPortlet extends GenericPortlet {
 		include(helpFile, renderRequest, renderResponse);
 	}
 
+	@Override
 	public void doView(
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws IOException {
@@ -108,6 +136,7 @@ public class ScriptingPortlet extends GenericPortlet {
 		include(viewFile, renderRequest, renderResponse);
 	}
 
+	@Override
 	public void processAction(
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws IOException {
@@ -115,6 +144,7 @@ public class ScriptingPortlet extends GenericPortlet {
 		include(actionFile, actionRequest, actionResponse);
 	}
 
+	@Override
 	public void render(
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws IOException, PortletException {
@@ -133,11 +163,21 @@ public class ScriptingPortlet extends GenericPortlet {
 		}
 	}
 
+	@Override
 	public void serveResource(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
 		throws IOException {
 
 		include(resourceFile, resourceRequest, resourceResponse);
+	}
+
+	protected void checkPath(String path) {
+		if (Validator.isNotNull(path) &&
+			(!path.startsWith(filePath) || !_isFilePath(path, false))) {
+
+			throw new RuntimeException(
+				"Path " + path + " is not accessible by this portlet");
+		}
 	}
 
 	protected void declareBeans(
@@ -241,6 +281,8 @@ public class ScriptingPortlet extends GenericPortlet {
 			PortletResponse portletResponse)
 		throws IOException {
 
+		checkPath(path);
+
 		InputStream is = getPortletContext().getResourceAsStream(path);
 
 		if (is == null) {
@@ -290,12 +332,55 @@ public class ScriptingPortlet extends GenericPortlet {
 		PortletResponseUtil.write(renderResponse, sb.toString());
 	}
 
+	private static boolean _isFilePath(
+			String path, boolean isParentDirAllowed) {
+
+		if (path.contains(_NULL_CHAR)) {
+			return false;
+		}
+
+		if (isParentDirAllowed) {
+			return true;
+		}
+
+		if (path.equals(StringPool.DOUBLE_PERIOD)) {
+			return false;
+		}
+
+		String normalizedPath = path.replace(
+			CharPool.BACK_SLASH, CharPool.SLASH);
+
+		if (normalizedPath.startsWith(
+				StringPool.DOUBLE_PERIOD.concat(StringPool.SLASH))) {
+
+			return false;
+		}
+
+		if (normalizedPath.endsWith(
+				StringPool.SLASH.concat(StringPool.DOUBLE_PERIOD))) {
+
+			return false;
+		}
+
+		if (normalizedPath.contains(
+				StringPool.SLASH.concat(
+					StringPool.DOUBLE_PERIOD).concat(StringPool.SLASH))) {
+
+			return false;
+		}
+
+		return true;
+	}
+
 	private static final String _ERROR = ScriptingPortlet.class + ".ERROR";
+
+	private static final String _NULL_CHAR = "\u0000";
 
 	private static Log _log = LogFactoryUtil.getLog(ScriptingPortlet.class);
 
 	protected String actionFile;
 	protected String editFile;
+	protected String filePath;
 	protected String helpFile;
 	protected String[] globalFiles;
 	protected String globalScript;

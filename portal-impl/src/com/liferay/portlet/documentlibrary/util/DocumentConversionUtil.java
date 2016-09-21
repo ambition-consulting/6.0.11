@@ -1,15 +1,15 @@
 /**
  * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.portlet.documentlibrary.util;
@@ -109,6 +109,11 @@ public class DocumentConversionUtil {
 			return null;
 		}
 
+		sourceExtension = _fixExtension(sourceExtension);
+		targetExtension = _fixExtension(targetExtension);
+
+		_validateExtension(targetExtension);
+
 		StringBundler sb = new StringBundler(5);
 
 		sb.append(SystemProperties.get(SystemProperties.TMP_DIR));
@@ -125,22 +130,44 @@ public class DocumentConversionUtil {
 			DocumentFormatRegistry registry =
 				new DefaultDocumentFormatRegistry();
 
-			DocumentConverter converter = _getConverter(registry);
+			DocumentFormat inputDocumentFormat =
+				registry.getFormatByFileExtension(
+					sourceExtension);
+			DocumentFormat outputDocumentFormat =
+				registry.getFormatByFileExtension(
+					targetExtension);
 
-			if (sourceExtension.equals("htm")) {
-				sourceExtension = "html";
+			if (inputDocumentFormat == null) {
+				throw new SystemException(
+					"Conversion is not supported from ." + sourceExtension);
+			}
+			else if (!inputDocumentFormat.isImportable()) {
+				throw new SystemException(
+					"Conversion is not supported from " +
+						inputDocumentFormat.getName());
+			}
+			else if (outputDocumentFormat == null) {
+				throw new SystemException(
+					"Conversion is not supported from " +
+						inputDocumentFormat.getName() + " to ." +
+							targetExtension);
+			}
+			else if (!inputDocumentFormat.isExportableTo(
+						outputDocumentFormat)) {
+
+				throw new SystemException(
+					"Conversion is not supported from " +
+						inputDocumentFormat.getName() + " to " +
+							outputDocumentFormat.getName());
 			}
 
-			DocumentFormat inputFormat = registry.getFormatByFileExtension(
-				sourceExtension);
+			DocumentConverter converter = _getConverter(registry);
 
 			UnsyncByteArrayOutputStream ubaos =
 				new UnsyncByteArrayOutputStream();
 
-			DocumentFormat outputFormat = registry.getFormatByFileExtension(
-				targetExtension);
-
-			converter.convert(is, inputFormat, ubaos, outputFormat);
+			converter.convert(
+				is, inputDocumentFormat, ubaos, outputDocumentFormat);
 
 			FileUtil.write(file, ubaos.unsafeGetByteArray(), 0, ubaos.size());
 		}
@@ -152,6 +179,14 @@ public class DocumentConversionUtil {
 		if (_connection != null) {
 			_connection.disconnect();
 		}
+	}
+
+	private String _fixExtension(String extension) {
+		if (extension.equals("htm")) {
+			extension = "html";
+		}
+
+		return extension;
 	}
 
 	private String[] _getConversions(String extension) {
@@ -210,6 +245,15 @@ public class DocumentConversionUtil {
 		}
 		else {
 			return false;
+		}
+	}
+
+	private void _validateExtension(String extension) throws SystemException {
+		if (extension.contains(StringPool.SLASH) ||
+			extension.contains(StringPool.BACK_SLASH) ||
+			extension.contains(File.pathSeparator)) {
+
+			throw new SystemException("Invalid extension: " + extension);
 		}
 	}
 

@@ -1,15 +1,15 @@
 /**
  * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.portal.service.permission;
@@ -22,6 +22,7 @@ import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.UserLocalServiceUtil;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
 
 /**
@@ -80,25 +81,41 @@ public class UserPermissionImpl implements UserPermission {
 		PermissionChecker permissionChecker, long userId,
 		long[] organizationIds, String actionId) {
 
-		if (((PropsValues.PERMISSIONS_USER_CHECK_ALGORITHM == 5 ||
-			  PropsValues.PERMISSIONS_USER_CHECK_ALGORITHM == 6) &&
-			 (permissionChecker.hasOwnerPermission(
-				permissionChecker.getCompanyId(), User.class.getName(), userId,
-				userId, actionId))) ||
-			(permissionChecker.getUserId() == userId)) {
+		try {
+			User user = null;
 
-			return true;
-		}
-		else if (permissionChecker.hasPermission(
-					0, User.class.getName(), userId, actionId)) {
+			if (userId != ResourceConstants.PRIMKEY_DNE) {
+				user = UserLocalServiceUtil.getUserById(userId);
 
-			return true;
-		}
-		else if (userId != ResourceConstants.PRIMKEY_DNE) {
-			try {
+				if ((actionId.equals(ActionKeys.DELETE) ||
+					 actionId.equals(ActionKeys.IMPERSONATE) ||
+					 actionId.equals(ActionKeys.PERMISSIONS) ||
+					 actionId.equals(ActionKeys.UPDATE)) &&
+					PortalUtil.isOmniadmin(userId) &&
+					!permissionChecker.isOmniadmin()) {
+
+					return false;
+				}
+
+				if (((PropsValues.PERMISSIONS_USER_CHECK_ALGORITHM == 5 ||
+					  PropsValues.PERMISSIONS_USER_CHECK_ALGORITHM == 6) &&
+					 (permissionChecker.hasOwnerPermission(
+						permissionChecker.getCompanyId(), User.class.getName(),
+						userId, userId, actionId))) ||
+					(permissionChecker.getUserId() == userId)) {
+
+					return true;
+				}
+			}
+
+			if (permissionChecker.hasPermission(
+				0, User.class.getName(), userId, actionId)) {
+
+				return true;
+			}
+
+			if (user != null) {
 				if (organizationIds == null) {
-					User user = UserLocalServiceUtil.getUserById(userId);
-
 					organizationIds = user.getOrganizationIds();
 				}
 
@@ -113,9 +130,9 @@ public class UserPermissionImpl implements UserPermission {
 					}
 				}
 			}
-			catch (Exception e) {
-				_log.error(e, e);
-			}
+		}
+		catch (Exception e) {
+			_log.error(e, e);
 		}
 
 		return false;

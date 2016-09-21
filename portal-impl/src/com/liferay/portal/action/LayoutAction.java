@@ -1,15 +1,15 @@
 /**
  * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.portal.action;
@@ -32,6 +32,7 @@ import com.liferay.portal.kernel.servlet.HeaderCacheServletResponse;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.servlet.PipingServletResponse;
 import com.liferay.portal.kernel.servlet.StringServletResponse;
+import com.liferay.portal.kernel.struts.LastPath;
 import com.liferay.portal.kernel.upload.UploadServletRequest;
 import com.liferay.portal.kernel.util.Base64;
 import com.liferay.portal.kernel.util.ContentTypes;
@@ -41,6 +42,7 @@ import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ServerDetector;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.QName;
@@ -97,6 +99,7 @@ import com.liferay.portlet.ResourceRequestImpl;
 import com.liferay.portlet.ResourceResponseFactory;
 import com.liferay.portlet.ResourceResponseImpl;
 import com.liferay.portlet.StateAwareResponseImpl;
+import com.liferay.portlet.layoutconfiguration.util.RuntimePortletUtil;
 import com.liferay.portlet.login.util.LoginUtil;
 import com.liferay.util.servlet.ServletResponseUtil;
 import com.liferay.util.servlet.filters.CacheResponseUtil;
@@ -724,6 +727,34 @@ public class LayoutAction extends Action {
 		processPublicRenderParameters(request, layout, portlet);
 
 		if (lifecycle.equals(PortletRequest.ACTION_PHASE)) {
+			if (!PortalUtil.isAllowAddPortletDefaultResource(
+					request, portlet)) {
+
+				String url = null;
+
+				LastPath lastPath = (LastPath)request.getAttribute(
+					WebKeys.LAST_PATH);
+
+				if (lastPath != null) {
+					StringBundler sb = new StringBundler(3);
+
+					sb.append(PortalUtil.getPortalURL(request));
+					sb.append(lastPath.getContextPath());
+					sb.append(lastPath.getPath());
+
+					url = sb.toString();
+				}
+				else {
+					url = String.valueOf(request.getRequestURI());
+				}
+
+				_log.error(
+					"Reject processAction for " + url + " on " +
+						portlet.getPortletId());
+
+				return null;
+			}
+
 			String contentType = request.getHeader(HttpHeaders.CONTENT_TYPE);
 
 			if (_log.isDebugEnabled()) {
@@ -830,6 +861,34 @@ public class LayoutAction extends Action {
 		}
 
 		if (lifecycle.equals(PortletRequest.RESOURCE_PHASE)) {
+			if (!PortalUtil.isAllowAddPortletDefaultResource(
+					request, portlet)) {
+
+				String url = null;
+
+				LastPath lastPath = (LastPath)request.getAttribute(
+					WebKeys.LAST_PATH);
+
+				if (lastPath != null) {
+					StringBundler sb = new StringBundler(3);
+
+					sb.append(PortalUtil.getPortalURL(request));
+					sb.append(lastPath.getContextPath());
+					sb.append(lastPath.getPath());
+
+					url = sb.toString();
+				}
+				else {
+					url = String.valueOf(request.getRequestURI());
+				}
+
+				_log.error(
+					"Reject serveResource for " + url + " on " +
+						portlet.getPortletId());
+
+				return null;
+			}
+
 			PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
 
 			String portletPrimaryKey = PortletPermissionUtil.getPrimaryKey(
@@ -961,13 +1020,15 @@ public class LayoutAction extends Action {
 			stringResponse = (StringServletResponse)
 				renderResponseImpl.getHttpServletResponse();
 
+			ServletContext servletContext =
+				(ServletContext)request.getAttribute(WebKeys.CTX);
+
 			Portlet portlet = processPortletRequest(
 				request, response, PortletRequest.RENDER_PHASE);
 
-			InvokerPortlet invokerPortlet = PortletInstanceFactoryUtil.create(
-				portlet, null);
-
-			invokerPortlet.render(renderRequestImpl, renderResponseImpl);
+			RuntimePortletUtil.processPortlet(
+				servletContext, request, stringResponse, renderRequestImpl,
+				renderResponseImpl, portlet.getPortletId(), null, true);
 
 			if (Validator.isNull(stringResponse.getString())) {
 				stringResponse.setString(null);

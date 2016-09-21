@@ -150,9 +150,12 @@
 	<classpathentry kind="lib" path="lib/portal/groovy.jar"/>
 	<classpathentry kind="lib" path="lib/portal/gt-coverage.jar"/>
 	<classpathentry kind="lib" path="lib/portal/gt-metadata.jar"/>
+	<classpathentry kind="lib" path="lib/portal/guice.jar"/>
 	<classpathentry kind="lib" path="lib/portal/hessian.jar"/>
 	<classpathentry kind="lib" path="lib/portal/hibernate3.jar"/>
 	<classpathentry kind="lib" path="lib/portal/htmlparser.jar"/>
+	<classpathentry kind="lib" path="lib/portal/httpclient.jar"/>
+	<classpathentry kind="lib" path="lib/portal/httpcore.jar"/>
 	<classpathentry kind="lib" path="lib/portal/ical4j.jar"/>
 	<classpathentry kind="lib" path="lib/portal/icq.jar"/>
 	<classpathentry kind="lib" path="lib/portal/jabsorb.jar"/>
@@ -166,6 +169,7 @@
 	<classpathentry kind="lib" path="lib/portal/jamwiki-core.jar"/>
 	<classpathentry kind="lib" path="lib/portal/java-diff.jar"/>
 	<classpathentry kind="lib" path="lib/portal/javassist.jar"/>
+	<classpathentry kind="lib" path="lib/portal/javax.inject.jar"/>
 	<classpathentry kind="lib" path="lib/portal/jaxen.jar"/>
 	<classpathentry kind="lib" path="lib/portal/jaxrpc.jar"/>
 	<classpathentry kind="lib" path="lib/portal/jazzy.jar"/>
@@ -192,6 +196,7 @@
 	<classpathentry kind="lib" path="lib/portal/juh.jar"/>
 	<classpathentry kind="lib" path="lib/portal/jurt.jar"/>
 	<classpathentry kind="lib" path="lib/portal/jython.jar"/>
+	<classpathentry kind="lib" path="lib/portal/kxml2.jar"/>
 	<classpathentry kind="lib" path="lib/portal/liferay-icu4j.jar"/>
 	<classpathentry kind="lib" path="lib/portal/liferay-rhino.jar"/>
 	<classpathentry kind="lib" path="lib/portal/liferay-yuicompressor.jar"/>

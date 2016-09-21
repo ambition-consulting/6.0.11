@@ -1,15 +1,15 @@
 /**
  * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.portal.service.impl;
@@ -34,6 +34,7 @@ import com.liferay.portal.service.permission.GroupPermissionUtil;
 import com.liferay.portal.service.permission.OrganizationPermissionUtil;
 import com.liferay.portal.service.permission.PasswordPolicyPermissionUtil;
 import com.liferay.portal.service.permission.PortalPermissionUtil;
+import com.liferay.portal.service.permission.UserPermissionUtil;
 import com.liferay.portlet.enterpriseadmin.util.EnterpriseAdminUtil;
 
 import java.util.Iterator;
@@ -202,9 +203,15 @@ public class OrganizationServiceImpl extends OrganizationServiceBaseImpl {
 	}
 
 	public long getOrganizationId(long companyId, String name)
-		throws SystemException {
+		throws PortalException, SystemException {
 
-		return organizationLocalService.getOrganizationId(companyId, name);
+		long organizationId = organizationLocalService.getOrganizationId(
+			companyId, name);
+
+		OrganizationPermissionUtil.check(
+			getPermissionChecker(), organizationId, ActionKeys.VIEW);
+
+		return organizationId;
 	}
 
 	public List<Organization> getOrganizations(
@@ -233,6 +240,9 @@ public class OrganizationServiceImpl extends OrganizationServiceBaseImpl {
 
 	public List<Organization> getUserOrganizations(long userId)
 		throws PortalException, SystemException {
+
+		UserPermissionUtil.check(
+			getPermissionChecker(), userId, ActionKeys.VIEW);
 
 		return organizationLocalService.getUserOrganizations(userId);
 	}
@@ -285,25 +295,39 @@ public class OrganizationServiceImpl extends OrganizationServiceBaseImpl {
 			ServiceContext serviceContext)
 		throws PortalException, SystemException {
 
-		EnterpriseAdminUtil.updateAddresses(
-			Organization.class.getName(), organizationId, addresses);
+		OrganizationPermissionUtil.check(
+			getPermissionChecker(), organizationId, ActionKeys.UPDATE);
 
-		EnterpriseAdminUtil.updateEmailAddresses(
-			Organization.class.getName(), organizationId, emailAddresses);
+		if (addresses != null) {
+			EnterpriseAdminUtil.updateAddresses(
+				Organization.class.getName(), organizationId, addresses);
+		}
 
-		EnterpriseAdminUtil.updateOrgLabors(organizationId, orgLabors);
+		if (emailAddresses != null) {
+			EnterpriseAdminUtil.updateEmailAddresses(
+				Organization.class.getName(), organizationId, emailAddresses);
+		}
 
-		EnterpriseAdminUtil.updatePhones(
-			Organization.class.getName(), organizationId, phones);
+		if (orgLabors != null) {
+			EnterpriseAdminUtil.updateOrgLabors(organizationId, orgLabors);
+		}
 
-		EnterpriseAdminUtil.updateWebsites(
-			Organization.class.getName(), organizationId, websites);
+		if (phones != null) {
+			EnterpriseAdminUtil.updatePhones(
+				Organization.class.getName(), organizationId, phones);
+		}
 
-		Organization organization = updateOrganization(
-			organizationId, parentOrganizationId, name, type, recursable,
-			regionId, countryId, statusId, comments, serviceContext);
+		if (websites != null) {
+			EnterpriseAdminUtil.updateWebsites(
+				Organization.class.getName(), organizationId, websites);
+		}
 
-		return organization;
+		User user = getUser();
+
+		return organizationLocalService.updateOrganization(
+			user.getCompanyId(), organizationId, parentOrganizationId, name,
+			type, recursable, regionId, countryId, statusId, comments,
+			serviceContext);
 	}
 
 	public Organization updateOrganization(
@@ -312,15 +336,10 @@ public class OrganizationServiceImpl extends OrganizationServiceBaseImpl {
 			int statusId, String comments, ServiceContext serviceContext)
 		throws PortalException, SystemException {
 
-		OrganizationPermissionUtil.check(
-			getPermissionChecker(), organizationId, ActionKeys.UPDATE);
-
-		User user = getUser();
-
-		return organizationLocalService.updateOrganization(
-			user.getCompanyId(), organizationId, parentOrganizationId,
-			name, type, recursable, regionId, countryId, statusId, comments,
-			serviceContext);
+		return updateOrganization(
+			organizationId, parentOrganizationId, name, type, recursable,
+			regionId, countryId, statusId, comments, null, null, null, null,
+			null, serviceContext);
 	}
 
 }

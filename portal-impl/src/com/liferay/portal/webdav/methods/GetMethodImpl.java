@@ -1,21 +1,23 @@
 /**
  * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.portal.webdav.methods;
 
+import com.liferay.portal.kernel.flash.FlashMagicBytesUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.webdav.Resource;
 import com.liferay.portal.kernel.webdav.WebDAVException;
 import com.liferay.portal.kernel.webdav.WebDAVRequest;
@@ -24,6 +26,7 @@ import com.liferay.util.servlet.ServletResponseUtil;
 
 import java.io.InputStream;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -37,6 +40,7 @@ public class GetMethodImpl implements Method {
 
 		try {
 			WebDAVStorage storage = webDavRequest.getWebDAVStorage();
+			HttpServletRequest request = webDavRequest.getHttpServletRequest();
 			HttpServletResponse response =
 				webDavRequest.getHttpServletResponse();
 
@@ -56,10 +60,22 @@ public class GetMethodImpl implements Method {
 			int status = HttpServletResponse.SC_NOT_FOUND;
 
 			if (is != null) {
-				try {
-					response.setContentType(resource.getContentType());
 
-					ServletResponseUtil.write(response, is);
+				String fileName = resource.getDisplayName();
+
+				FlashMagicBytesUtil.Result flashMagicBytesUtilResult =
+					FlashMagicBytesUtil.check(is);
+
+				if (flashMagicBytesUtilResult.isFlash()) {
+					fileName = FileUtil.stripExtension(fileName) + ".swf";
+				}
+
+				is = flashMagicBytesUtilResult.getInputStream();
+
+				try {
+					ServletResponseUtil.sendFile(
+						request, response, fileName, is, resource.getSize(),
+						resource.getContentType());
 				}
 				catch (Exception e) {
 					if (_log.isWarnEnabled()) {

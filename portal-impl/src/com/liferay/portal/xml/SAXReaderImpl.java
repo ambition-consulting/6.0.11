@@ -1,15 +1,15 @@
 /**
- * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.portal.xml;
@@ -28,6 +28,8 @@ import com.liferay.portal.kernel.xml.QName;
 import com.liferay.portal.kernel.xml.SAXReader;
 import com.liferay.portal.kernel.xml.Text;
 import com.liferay.portal.kernel.xml.XPath;
+import com.liferay.portal.security.xml.SecureXMLFactoryProvider;
+import com.liferay.portal.security.xml.SecureXMLFactoryProviderImpl;
 import com.liferay.portal.util.EntityResolver;
 import com.liferay.util.xml.XMLSafeReader;
 
@@ -42,8 +44,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.xerces.parsers.SAXParser;
-
 import org.dom4j.DocumentFactory;
 import org.dom4j.DocumentHelper;
 
@@ -52,8 +52,11 @@ import org.dom4j.DocumentHelper;
  */
 public class SAXReaderImpl implements SAXReader {
 
+	/**
+	 * @deprecated As of 6.2.0, with no direct replacement
+	 */
 	public static SAXReaderImpl getInstance() {
-		return _instance;
+		return new SAXReaderImpl();
 	}
 
 	public static List<Attribute> toNewAttributes(
@@ -312,6 +315,16 @@ public class SAXReaderImpl implements SAXReader {
 				xpathFilterExpression, nodeImpl.getWrappedNode()));
 	}
 
+	public void setSecure(boolean secure) {
+		_secure = secure;
+	}
+
+	public void setSecureXMLFactoryProvider(
+		SecureXMLFactoryProvider secureXMLFactoryProvider) {
+
+		_secureXMLFactoryProvider = secureXMLFactoryProvider;
+	}
+
 	public void sort(List<Node> nodes, String xpathExpression) {
 		DocumentHelper.sort(toOldNodes(nodes), xpathExpression);
 	}
@@ -414,29 +427,48 @@ public class SAXReaderImpl implements SAXReader {
 		org.dom4j.io.SAXReader reader = null;
 
 		try {
-			reader = new org.dom4j.io.SAXReader(new SAXParser(), validate);
+			reader = new org.dom4j.io.SAXReader(
+				_secureXMLFactoryProvider.newXMLReader(), validate);
 
 			reader.setEntityResolver(new EntityResolver());
-
+			reader.setFeature(_FEATURES_DYNAMIC, validate);
 			reader.setFeature(_FEATURES_VALIDATION, validate);
 			reader.setFeature(_FEATURES_VALIDATION_SCHEMA, validate);
 			reader.setFeature(
 				_FEATURES_VALIDATION_SCHEMA_FULL_CHECKING, validate);
-			reader.setFeature(_FEATURES_DYNAMIC, validate);
+
+			if (!_secure) {
+				reader.setFeature(_FEATURES_DISALLOW_DOCTYPE_DECL, false);
+				reader.setFeature(_FEATURES_LOAD_DTD_GRAMMAR, validate);
+				reader.setFeature(_FEATURES_LOAD_EXTERNAL_DTD, validate);
+			}
 		}
 		catch (Exception e) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
-					"XSD validation is diasabled because " + e.getMessage());
+					"XSD validation is disabled because " + e.getMessage());
 			}
 
-			reader = new org.dom4j.io.SAXReader(false);
+			reader = new org.dom4j.io.SAXReader(
+				_secureXMLFactoryProvider.newXMLReader(), false);
 
 			reader.setEntityResolver(new EntityResolver());
 		}
 
 		return reader;
 	}
+
+	private static final String _FEATURES_DISALLOW_DOCTYPE_DECL =
+		"http://apache.org/xml/features/disallow-doctype-decl";
+
+	private static final String _FEATURES_DYNAMIC =
+		"http://apache.org/xml/features/validation/dynamic";
+
+	private static final String _FEATURES_LOAD_DTD_GRAMMAR =
+		"http://apache.org/xml/features/nonvalidating/load-dtd-grammar";
+
+	private static final String _FEATURES_LOAD_EXTERNAL_DTD =
+		"http://apache.org/xml/features/nonvalidating/load-external-dtd";
 
 	private static final String _FEATURES_VALIDATION =
 		"http://xml.org/sax/features/validation";
@@ -447,11 +479,10 @@ public class SAXReaderImpl implements SAXReader {
 	private static final String _FEATURES_VALIDATION_SCHEMA_FULL_CHECKING =
 		"http://apache.org/xml/features/validation/schema-full-checking";
 
-	private static final String _FEATURES_DYNAMIC =
-		"http://apache.org/xml/features/validation/dynamic";
-
 	private static Log _log = LogFactoryUtil.getLog(SAXReaderImpl.class);
 
-	private static SAXReaderImpl _instance = new SAXReaderImpl();
+	private boolean _secure;
+	private SecureXMLFactoryProvider _secureXMLFactoryProvider =
+		new SecureXMLFactoryProviderImpl();
 
 }

@@ -1,15 +1,15 @@
 /**
- * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-2010 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.portlet;
@@ -39,6 +39,7 @@ import com.liferay.portal.model.User;
 import com.liferay.portal.service.RoleLocalServiceUtil;
 import com.liferay.portal.servlet.NamespaceServletRequest;
 import com.liferay.portal.servlet.SharedSessionUtil;
+import com.liferay.portal.struts.PortalRequestProcessor;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
@@ -58,6 +59,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.ccpp.Profile;
 
@@ -433,9 +436,17 @@ public abstract class PortletRequestImpl implements LiferayPortletRequest {
 
 			return true;
 		}
-		else {
-			return false;
+
+		if (_strutsPortlet) {
+			Matcher matcher = _strutsPortletIgnoredParamtersPattern.matcher(
+				name);
+
+			if (matcher.matches()) {
+				return true;
+			}
 		}
+
+		return false;
 	}
 
 	public boolean isPortletModeAllowed(PortletMode portletMode) {
@@ -538,6 +549,14 @@ public abstract class PortletRequestImpl implements LiferayPortletRequest {
 		_portletName = portlet.getPortletId();
 		_publicRenderParameters = PublicRenderParametersPool.get(request, plid);
 
+		if (invokerPortlet != null) {
+			if (invokerPortlet.isStrutsPortlet() ||
+				invokerPortlet.isStrutsBridgePortlet()) {
+
+				_strutsPortlet = true;
+			}
+		}
+
 		String portletNamespace = PortalUtil.getPortletNamespace(_portletName);
 
 		Map<String, Object> sharedSessionAttributes =
@@ -568,12 +587,7 @@ public abstract class PortletRequestImpl implements LiferayPortletRequest {
 
 		String ppid = ParamUtil.getString(request, "p_p_id");
 
-		boolean windowStateRestoreCurrentView =  ParamUtil.getBoolean(
-			request, "p_p_state_rcv");
-
-		if (_portletName.equals(ppid) &&
-			!(windowStateRestoreCurrentView &&
-			  portlet.isRestoreCurrentView())) {
+		if (_portletName.equals(ppid)) {
 
 			// Request was targeted to this portlet
 
@@ -774,6 +788,10 @@ public abstract class PortletRequestImpl implements LiferayPortletRequest {
 		return name;
 	}
 
+	private static Pattern _strutsPortletIgnoredParamtersPattern =
+		Pattern.compile(
+			PortalRequestProcessor.STRUTS_PORTLET_IGNORED_PARAMETERS_REGEXP);
+
 	private static Log _log = LogFactoryUtil.getLog(PortletRequestImpl.class);
 
 	private HttpServletRequest _request;
@@ -791,6 +809,7 @@ public abstract class PortletRequestImpl implements LiferayPortletRequest {
 	private boolean _invalidSession;
 	private String _remoteUser;
 	private long _remoteUserId;
+	private boolean _strutsPortlet;
 	private Principal _userPrincipal;
 	private Profile _profile;
 	private Locale _locale;

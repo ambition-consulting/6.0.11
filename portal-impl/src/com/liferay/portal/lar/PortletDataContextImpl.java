@@ -1,15 +1,15 @@
 /**
  * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.portal.lar;
@@ -26,12 +26,15 @@ import com.liferay.portal.kernel.lar.PortletDataHandlerKeys;
 import com.liferay.portal.kernel.lar.UserIdStrategy;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.KeyValuePair;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.kernel.xml.Node;
+import com.liferay.portal.kernel.xml.QName;
 import com.liferay.portal.kernel.zip.ZipReader;
 import com.liferay.portal.kernel.zip.ZipWriter;
 import com.liferay.portal.model.Group;
@@ -50,6 +53,7 @@ import com.liferay.portal.service.ResourcePermissionLocalServiceUtil;
 import com.liferay.portal.service.RoleLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.asset.model.AssetCategory;
 import com.liferay.portlet.asset.service.AssetCategoryLocalServiceUtil;
@@ -92,9 +96,16 @@ import com.liferay.portlet.wiki.model.impl.WikiNodeImpl;
 import com.liferay.portlet.wiki.model.impl.WikiPageImpl;
 
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.security.NoTypePermission;
+import com.thoughtworks.xstream.security.PrimitiveTypePermission;
 
 import java.io.IOException;
 import java.io.InputStream;
+
+import java.sql.Time;
+import java.sql.Timestamp;
+
+import java.text.Format;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -102,8 +113,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 /**
  * <p>
@@ -1035,6 +1048,47 @@ public class PortletDataContextImpl implements PortletDataContext {
 		_xStream.alias("RatingsEntry", RatingsEntryImpl.class);
 		_xStream.alias("WikiNode", WikiNodeImpl.class);
 		_xStream.alias("WikiPage", WikiPageImpl.class);
+
+		if (!GetterUtil.getBoolean(PropsUtil.get(
+			"staging.xstream.security.enabled"))) {
+
+			return;
+		}
+
+		// Permissions
+
+		// Wipe all of them
+
+		_xStream.addPermission(NoTypePermission.NONE);
+
+		// Add permissions
+
+		_xStream.addPermission(PrimitiveTypePermission.PRIMITIVES);
+
+		List<String> allowedTypes = new ArrayList<String>();
+
+		allowedTypes.addAll(
+			ListUtil.toList(_XSTREAM_DEFAULT_ALLOWED_CLASS_NAMES));
+		allowedTypes.addAll(
+			ListUtil.toList(PropsUtil.getArray(
+				"staging.xstream.class.whitelist")));
+
+		_xStream.allowTypes(allowedTypes.toArray(new String[0]));
+
+		_xStream.allowTypeHierarchy(Node.class);
+		_xStream.allowTypeHierarchy(QName.class);
+
+		_xStream.allowTypeHierarchy(org.dom4j.DocumentFactory.class);
+		_xStream.allowTypeHierarchy(org.dom4j.Node.class);
+		_xStream.allowTypeHierarchy(org.dom4j.QName.class);
+
+		_xStream.allowTypeHierarchy(Format.class);
+		_xStream.allowTypeHierarchy(List.class);
+		_xStream.allowTypeHierarchy(Map.class);
+		_xStream.allowTypeHierarchy(TimeZone.class);
+
+		_xStream.allowTypesByWildcard(
+			_XSTREAM_DEFAULT_ALLOWED_TYPES_BY_WILDCARD);
 	}
 
 	protected void validateDateRange(Date startDate, Date endDate)
@@ -1059,6 +1113,31 @@ public class PortletDataContextImpl implements PortletDataContext {
 			}
 		}
 	}
+
+	private static final String[] _XSTREAM_DEFAULT_ALLOWED_CLASS_NAMES =
+		new String[] {
+			byte[].class.getName(), Date.class.getName(),
+			InputStream.class.getName(), Locale.class.getName(),
+			String.class.getName(), Time.class.getName(),
+			Timestamp.class.getName()
+		};
+
+	private static final String[] _XSTREAM_DEFAULT_ALLOWED_TYPES_BY_WILDCARD =
+		new String[] {
+			"com.liferay.portal.model.*",
+			"com.liferay.portal.model.impl.*",
+			"com.liferay.portlet.asset.model.impl.*",
+			"com.liferay.portlet.blogs.model.impl.*",
+			"com.liferay.portlet.bookmarks.model.impl.*",
+			"com.liferay.portlet.calendar.model.impl.*",
+			"com.liferay.portlet.documentlibrary.model.impl.*",
+			"com.liferay.portlet.imagegallery.model.impl.*",
+			"com.liferay.portlet.journal.model.impl.*",
+			"com.liferay.portlet.messageboards.model.impl.*",
+			"com.liferay.portlet.polls.model.impl.*",
+			"com.liferay.portlet.wiki.model.impl.*",
+			"com.thoughtworks.xstream.mapper.DynamicProxyMapper*"
+		};
 
 	private static Log _log = LogFactoryUtil.getLog(
 		PortletDataContextImpl.class);

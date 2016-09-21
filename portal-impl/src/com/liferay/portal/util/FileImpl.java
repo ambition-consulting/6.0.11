@@ -1,15 +1,15 @@
 /**
  * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.portal.util;
@@ -348,13 +348,10 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 	}
 
 	public String getPath(String fullFileName) {
-		int pos = fullFileName.lastIndexOf(CharPool.SLASH);
+		int x = fullFileName.lastIndexOf(CharPool.SLASH);
+		int y = fullFileName.lastIndexOf(CharPool.BACK_SLASH);
 
-		if (pos == -1) {
-			pos = fullFileName.lastIndexOf(CharPool.BACK_SLASH);
-		}
-
-		String shortFileName = fullFileName.substring(0, pos);
+		String shortFileName = fullFileName.substring(0, Math.max(x, y));
 
 		if (Validator.isNull(shortFileName)) {
 			return StringPool.SLASH;
@@ -364,14 +361,10 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 	}
 
 	public String getShortFileName(String fullFileName) {
-		int pos = fullFileName.lastIndexOf(CharPool.SLASH);
+		int x = fullFileName.lastIndexOf(CharPool.SLASH);
+		int y = fullFileName.lastIndexOf(CharPool.BACK_SLASH);
 
-		if (pos == -1) {
-			pos = fullFileName.lastIndexOf(CharPool.BACK_SLASH);
-		}
-
-		String shortFileName =
-			fullFileName.substring(pos + 1, fullFileName.length());
+		String shortFileName = fullFileName.substring(Math.max(x, y) + 1);
 
 		return shortFileName;
 	}

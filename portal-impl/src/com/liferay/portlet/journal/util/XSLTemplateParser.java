@@ -1,15 +1,15 @@
 /**
  * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.portlet.journal.util;
@@ -23,6 +23,7 @@ import com.liferay.portal.model.Company;
 import com.liferay.portal.security.permission.PermissionThreadLocal;
 import com.liferay.portal.service.CompanyLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.velocity.VelocityResourceListener;
 import com.liferay.util.ContentUtil;
@@ -31,7 +32,9 @@ import com.liferay.util.PwdGenerator;
 import java.util.Locale;
 import java.util.Map;
 
+import javax.xml.XMLConstants;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
@@ -67,6 +70,14 @@ public class XSLTemplateParser extends BaseTemplateParser {
 
 		TransformerFactory transformerFactory =
 			TransformerFactory.newInstance();
+
+		try {
+			transformerFactory.setFeature(
+				XMLConstants.FEATURE_SECURE_PROCESSING,
+				_XSL_TEMPLATE_SECURE_PROCESSING_ENABLED);
+		}
+		catch (TransformerConfigurationException tce) {
+		}
 
 		transformerFactory.setURIResolver(new URIResolver(tokens, languageId));
 		transformerFactory.setErrorListener(xslErrorListener);
@@ -128,5 +139,9 @@ public class XSLTemplateParser extends BaseTemplateParser {
 
 		return unsyncByteArrayOutputStream.toString(StringPool.UTF8);
 	}
+
+	private static final boolean _XSL_TEMPLATE_SECURE_PROCESSING_ENABLED =
+		GetterUtil.getBoolean(
+			PropsUtil.get("xsl.template.secure.processing.enabled"));
 
 }

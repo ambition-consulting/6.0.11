@@ -1,15 +1,15 @@
 /**
  * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.portal.util;
@@ -3453,7 +3453,9 @@ public class PortalImpl implements Portal {
 			}
 		}
 
-		if (layout.isTypePanel()) {
+		if (layout.isTypePanel() &&
+			isPanelSelectedPortlet(themeDisplay, portletId)) {
+
 			return true;
 		}
 
@@ -3463,18 +3465,10 @@ public class PortalImpl implements Portal {
 			return true;
 		}
 
-		if (layout.isTypePortlet()) {
-			String checkPortletId = portletId;
+		if (layout.isTypePortlet() &&
+			layoutTypePortlet.hasPortletId(portletId)) {
 
-			String outerPortletId = getOuterPortletId(request);
-
-			if (outerPortletId != null) {
-				checkPortletId = outerPortletId;
-			}
-
-			if (layoutTypePortlet.hasPortletId(checkPortletId)) {
 				return true;
-			}
 		}
 
 		if (themeDisplay.isSignedIn() &&
@@ -3541,36 +3535,41 @@ public class PortalImpl implements Portal {
 			}
 		}
 
-		if (portlet.isAddDefaultResource()) {
-			if (!PropsValues.PORTLET_ADD_DEFAULT_RESOURCE_CHECK_ENABLED) {
+		if (!PropsValues.PORTLET_ADD_DEFAULT_RESOURCE_CHECK_ENABLED) {
+			return true;
+		}
+
+		if (_portletAddDefaultResourceCheckWhitelist.contains(portletId)) {
+			return true;
+		}
+
+		String namespace = getPortletNamespace(portletId);
+
+		String strutsAction = ParamUtil.getString(
+			request, namespace + "struts_action");
+
+		if (Validator.isNull(strutsAction)) {
+			strutsAction = ParamUtil.getString(request, "struts_action");
+		}
+
+		if (_portletAddDefaultResourceCheckWhitelistActions.contains(
+				strutsAction)) {
+
+			return true;
+		}
+
+		String requestPortletAuthenticationToken = ParamUtil.getString(
+			request, "p_p_auth");
+
+		if (Validator.isNotNull(requestPortletAuthenticationToken)) {
+			String actualPortletAuthenticationToken =
+				AuthTokenUtil.getToken(
+					request, layout.getPlid(), portletId);
+
+			if (requestPortletAuthenticationToken.equals(
+					actualPortletAuthenticationToken)) {
+
 				return true;
-			}
-
-			if (_portletAddDefaultResourceCheckWhitelist.contains(portletId)) {
-				return true;
-			}
-
-			String strutsAction = ParamUtil.getString(request, "struts_action");
-
-			if (_portletAddDefaultResourceCheckWhitelistActions.contains(
-					strutsAction)) {
-
-				return true;
-			}
-
-			String requestPortletAuthenticationToken = ParamUtil.getString(
-				request, "p_p_auth");
-
-			if (Validator.isNotNull(requestPortletAuthenticationToken)) {
-				String actualPortletAuthenticationToken =
-					AuthTokenUtil.getToken(
-						request, layout.getPlid(), portletId);
-
-				if (requestPortletAuthenticationToken.equals(
-						actualPortletAuthenticationToken)) {
-
-					return true;
-				}
 			}
 		}
 
@@ -4501,6 +4500,24 @@ public class PortalImpl implements Portal {
 
 			return 0;
 		}
+	}
+
+	protected boolean isPanelSelectedPortlet(
+		ThemeDisplay themeDisplay, String portletId) {
+
+		Layout layout = themeDisplay.getLayout();
+
+		String panelSelectedPortlets = layout.getTypeSettingsProperty(
+				"panelSelectedPortlets");
+
+		if (Validator.isNotNull(panelSelectedPortlets)) {
+			String[] panelSelectedPortletsArray = StringUtil.split(
+				panelSelectedPortlets);
+
+			return ArrayUtil.contains(panelSelectedPortletsArray, portletId);
+		}
+
+		return false;
 	}
 
 	protected void notifyPortalPortEventListeners(int portalPort) {

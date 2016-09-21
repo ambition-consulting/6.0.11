@@ -1,15 +1,15 @@
 /**
- * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-2010 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.portal.struts;
@@ -64,15 +64,19 @@ import com.liferay.portlet.RenderRequestFactory;
 import com.liferay.portlet.RenderRequestImpl;
 import com.liferay.portlet.RenderResponseFactory;
 import com.liferay.portlet.RenderResponseImpl;
+import com.liferay.util.servlet.DynamicServletRequest;
 
 import java.io.IOException;
 
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.portlet.PortletConfig;
 import javax.portlet.PortletContext;
@@ -88,6 +92,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.jsp.PageContext;
 
+import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.config.ForwardConfig;
 import org.apache.struts.tiles.TilesRequestProcessor;
@@ -98,6 +103,12 @@ import org.apache.struts.tiles.TilesRequestProcessor;
  * @author Wesley Gong
  */
 public class PortalRequestProcessor extends TilesRequestProcessor {
+
+	public static String STRUTS_PORTLET_IGNORED_PARAMETERS_REGEXP =
+		GetterUtil.getString(
+			PropsUtil.get(
+				"struts.portlet.ignored.parameters.regexp"),
+			"(.*\\.|^|.*|\\[('|\"))(c|C)lass(\\.|('|\")]|\\[).*");
 
 	public PortalRequestProcessor() {
 
@@ -725,6 +736,44 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 		return path;
 	}
 
+	protected void processPopulate(
+			HttpServletRequest request, HttpServletResponse response,
+			ActionForm actionForm, ActionMapping actionMapping)
+		throws ServletException {
+
+		if (actionForm == null) {
+			return;
+		}
+
+		boolean hasIgnoredParameter = false;
+
+		Map<String, String[]> oldParameterMap = request.getParameterMap();
+
+		Map<String, String[]> newParameterMap =
+			new LinkedHashMap<String, String[]>(oldParameterMap.size());
+
+		for (Map.Entry<String, String[]> entry : oldParameterMap.entrySet()) {
+			String name = entry.getKey();
+
+			Matcher matcher = _strutsPortletIgnoredParamtersPattern.matcher(
+				name);
+
+			if (matcher.matches()) {
+				hasIgnoredParameter = true;
+			}
+			else {
+				newParameterMap.put(name, entry.getValue());
+			}
+		}
+
+		if (hasIgnoredParameter) {
+			request = new DynamicServletRequest(
+				request, newParameterMap, false);
+		}
+
+		super.processPopulate(request, response, actionForm, actionMapping);
+	}
+
 	protected boolean processRoles(
 			HttpServletRequest request, HttpServletResponse response,
 			ActionMapping mapping)
@@ -875,6 +924,9 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 
 	private static Log _log = LogFactoryUtil.getLog(
 		PortalRequestProcessor.class);
+
+	private static Pattern _strutsPortletIgnoredParamtersPattern =
+		Pattern.compile(STRUTS_PORTLET_IGNORED_PARAMETERS_REGEXP);
 
 	private Set<String> _lastPaths;
 	private Set<String> _publicPaths;

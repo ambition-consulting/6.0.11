@@ -1,20 +1,22 @@
 /**
  * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.portlet;
 
 import com.liferay.portal.kernel.portlet.LiferayPortletURL;
+import com.liferay.portal.kernel.portlet.LiferayWindowState;
+import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -137,27 +139,41 @@ public class PortletURLUtil {
 
 		sb.append("p_l_id=");
 		sb.append(plid);
+		sb.append(StringPool.AMPERSAND);
 
 		Portlet portlet = (Portlet)request.getAttribute(
 			WebKeys.RENDER_PORTLET);
 
 		String portletId = portlet.getPortletId();
 
-		sb.append("&p_p_id=");
-		sb.append(portletId);
+		LiferayPortletURL liferayPortletURL = PortletURLFactoryUtil.create(
+			request, portletId, plid, PortletRequest.RENDER_PHASE);
 
-		sb.append("&p_p_lifecycle=0");
+		String urlQueryString = liferayPortletURL.toString();
+
+		urlQueryString = urlQueryString.substring(
+			urlQueryString.indexOf(CharPool.QUESTION) + 1);
+
+		sb.append(urlQueryString);
+
+		sb.append("&p_t_lifecycle=");
+		sb.append(themeDisplay.getLifecycle());
 
 		WindowState windowState = WindowState.NORMAL;
 
-		LayoutTypePortlet layoutTypePortlet =
-			themeDisplay.getLayoutTypePortlet();
-
-		if (layoutTypePortlet.hasStateMaxPortletId(portletId)) {
-			windowState = WindowState.MAXIMIZED;
+		if (themeDisplay.isStatePopUp()) {
+			windowState = LiferayWindowState.POP_UP;
 		}
-		else if (layoutTypePortlet.hasStateMinPortletId(portletId)) {
-			windowState = WindowState.MINIMIZED;
+		else {
+			LayoutTypePortlet layoutTypePortlet =
+				themeDisplay.getLayoutTypePortlet();
+
+			if (layoutTypePortlet.hasStateMaxPortletId(portletId)) {
+				windowState = WindowState.MAXIMIZED;
+			}
+			else if (layoutTypePortlet.hasStateMinPortletId(portletId)) {
+				windowState = WindowState.MINIMIZED;
+			}
 		}
 
 		sb.append("&p_p_state=");

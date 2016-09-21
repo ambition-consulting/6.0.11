@@ -1,21 +1,20 @@
 /**
  * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
 package com.liferay.portal.webdav.methods;
 
 import com.liferay.portal.NoSuchLockException;
-import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
@@ -29,6 +28,9 @@ import com.liferay.portal.kernel.webdav.WebDAVException;
 import com.liferay.portal.kernel.webdav.WebDAVRequest;
 import com.liferay.portal.kernel.webdav.WebDAVStorage;
 import com.liferay.portal.kernel.webdav.WebDAVUtil;
+import com.liferay.portal.kernel.xml.Document;
+import com.liferay.portal.kernel.xml.Element;
+import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.model.Lock;
 import com.liferay.util.servlet.ServletResponseUtil;
 import com.liferay.util.xml.XMLFormatter;
@@ -37,10 +39,6 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.dom4j.Document;
-import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
 
 /**
  * @author Alexander Chow
@@ -86,19 +84,16 @@ public class LockMethodImpl implements Method {
 						"Request XML\n" + XMLFormatter.toString(xml));
 				}
 
-				SAXReader reader = new SAXReader();
+				Document document = SAXReaderUtil.read(xml);
 
-				Document doc = reader.read(new UnsyncStringReader(xml));
-
-				Element root = doc.getRootElement();
+				Element rootElement = document.getRootElement();
 
 				boolean exclusive = false;
 
-				List<Element> lockscopeEls = root.element(
-					"lockscope").elements();
+				Element lockscopeElement = rootElement.element("lockscope");
 
-				for (Element scopeEl : lockscopeEls) {
-					String name = GetterUtil.getString(scopeEl.getName());
+				for (Element element : lockscopeElement.elements()) {
+					String name = GetterUtil.getString(element.getName());
 
 					if (name.equals("exclusive")) {
 						exclusive = true;
@@ -109,16 +104,17 @@ public class LockMethodImpl implements Method {
 					return HttpServletResponse.SC_BAD_REQUEST;
 				}
 
-				Element ownerEl = root.element("owner");
+				Element ownerElement = rootElement.element("owner");
 
-				owner = ownerEl.getTextTrim();
+				owner = ownerElement.getTextTrim();
 
 				if (Validator.isNull(owner)) {
-					List<Element> childEls = ownerEl.elements("href");
+					List<Element> hrefElements = ownerElement.elements("href");
 
-					for (Element childEl : childEls) {
+					for (Element hrefElement : hrefElements) {
 						owner =
-							"<D:href>" + childEl.getTextTrim() + "</D:href>";
+							"<D:href>" + hrefElement.getTextTrim() +
+								"</D:href>";
 					}
 				}
 			}

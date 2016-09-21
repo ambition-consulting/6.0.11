@@ -2,15 +2,15 @@
 /**
  * Copyright (c) 2000-2011 Liferay, Inc. All rights reserved.
  *
- * The contents of this file are subject to the terms of the Liferay Enterprise
- * Subscription License ("License"). You may not use this file except in
- * compliance with the License. You can obtain a copy of the License by
- * contacting Liferay, Inc. See the License for the specific language governing
- * permissions and limitations under the License, including but not limited to
- * distribution rights of the Software.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- *
- *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 --%>
 
@@ -29,6 +29,24 @@ String redirect = ParamUtil.getString(request, "redirect");
 	<liferay-ui:error key="xmlURL" message="please-enter-a-valid-xml-url" />
 	<liferay-ui:error key="xslURL" message="please-enter-a-valid-xsl-url" />
 	<liferay-ui:error key="transformation" message="an-error-occurred-while-processing-your-xml-and-xsl" />
+
+	<%
+	String[] validUrlPrefixesArray = PropsUtil.getArray("xsl.content.valid.url.prefixes");
+
+	if (Validator.isNotNull(validUrlPrefixesArray)) {
+		for (int i = 0; i < validUrlPrefixesArray.length; i++) {
+			validUrlPrefixesArray[i] = XSLContentUtil.replaceUrlTokens(themeDisplay, validUrlPrefixesArray[i]);
+		}
+	}
+
+	String validUrlPrefixes = StringUtil.merge(validUrlPrefixesArray, StringPool.COMMA_AND_SPACE);
+	%>
+
+	<c:if test="<%= Validator.isNotNull(validUrlPrefixes) %>">
+		<div class="portlet-msg-info">
+			<liferay-ui:message arguments="<%= validUrlPrefixes %>" key="urls-must-begin-with-one-of-the-following" />
+		</div>
+	</c:if>
 
 	<aui:fieldset>
 		<aui:input cssClass="lfr-input-text-container" label="xml-url" name="xmlURL" type="text" value="<%= xmlURL %>" />
