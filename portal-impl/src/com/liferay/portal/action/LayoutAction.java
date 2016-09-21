@@ -139,6 +139,7 @@ import org.apache.struts.action.ActionMapping;
  */
 public class LayoutAction extends Action {
 
+	@Override
 	public ActionForward execute(
 			ActionMapping mapping, ActionForm form, HttpServletRequest request,
 			HttpServletResponse response)
@@ -720,9 +721,18 @@ public class LayoutAction extends Action {
 			PortletPreferencesFactoryUtil.getPortletPreferencesIds(
 				request, portletId);
 
-		PortletPreferences portletPreferences =
-			PortletPreferencesLocalServiceUtil.getPreferences(
-				portletPreferencesIds);
+		PortletPreferences portletPreferences = null;
+
+		if (PortalUtil.isAllowAddPortletDefaultResource(request, portlet)) {
+			portletPreferences =
+				PortletPreferencesLocalServiceUtil.getPreferences(
+					portletPreferencesIds);
+		}
+		else {
+			portletPreferences =
+				PortletPreferencesLocalServiceUtil.getStrictPreferences(
+					portletPreferencesIds);
+		}
 
 		processPublicRenderParameters(request, layout, portlet);
 

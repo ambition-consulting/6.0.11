@@ -140,6 +140,14 @@ public class PortletPreferencesFactoryUtil {
 		_portletPreferencesFactory = portletPreferencesFactory;
 	}
 
+	public static PortletPreferences getStrictLayoutPortletSetup(
+			Layout layout, String portletId)
+		throws SystemException {
+
+		return getPortletPreferencesFactory().getStrictLayoutPortletSetup(
+			layout, portletId);
+	}
+
 	private static PortletPreferencesFactory _portletPreferencesFactory;
 
 }

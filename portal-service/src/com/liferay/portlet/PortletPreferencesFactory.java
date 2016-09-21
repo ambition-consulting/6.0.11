@@ -77,4 +77,8 @@ public interface PortletPreferencesFactory {
 
 	public PreferencesValidator getPreferencesValidator(Portlet portlet);
 
+	public PortletPreferences getStrictLayoutPortletSetup(
+			Layout layout, String portletId)
+		throws SystemException;
+
 }
