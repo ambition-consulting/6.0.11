@@ -51,7 +51,6 @@ import javax.servlet.http.HttpSession;
 public class PortletPreferencesFactoryImpl
 	implements PortletPreferencesFactory {
 
-	@Override
 	public PortletPreferences getLayoutPortletSetup(
 			Layout layout, String portletId)
 		throws SystemException {
@@ -64,7 +63,6 @@ public class PortletPreferencesFactoryImpl
 			portletId);
 	}
 
-	@Override
 	public PortalPreferences getPortalPreferences(HttpServletRequest request)
 		throws SystemException {
 
@@ -113,7 +111,6 @@ public class PortletPreferencesFactoryImpl
 		return portalPrefs;
 	}
 
-	@Override
 	public PortalPreferences getPortalPreferences(PortletRequest portletRequest)
 		throws SystemException {
 
@@ -123,7 +120,6 @@ public class PortletPreferencesFactoryImpl
 		return getPortalPreferences(request);
 	}
 
-	@Override
 	public PortletPreferences getPortletPreferences(
 			HttpServletRequest request, String portletId)
 		throws PortalException, SystemException {
@@ -135,7 +131,6 @@ public class PortletPreferencesFactoryImpl
 			portletPreferencesIds);
 	}
 
-	@Override
 	public PortletPreferencesIds getPortletPreferencesIds(
 			HttpServletRequest request, String portletId)
 		throws PortalException, SystemException {
@@ -145,7 +140,6 @@ public class PortletPreferencesFactoryImpl
 		return getPortletPreferencesIds(request, layout, portletId);
 	}
 
-	@Override
 	public PortletPreferencesIds getPortletPreferencesIds(
 			HttpServletRequest request, Layout selLayout, String portletId)
 		throws PortalException, SystemException {
@@ -268,7 +262,6 @@ public class PortletPreferencesFactoryImpl
 			themeDisplay.getCompanyId(), ownerId, ownerType, plid, portletId);
 	}
 
-	@Override
 	public PortletPreferences getPortletSetup(
 			Layout layout, String portletId, String defaultPreferences)
 		throws SystemException {
@@ -278,7 +271,6 @@ public class PortletPreferencesFactoryImpl
 			defaultPreferences);
 	}
 
-	@Override
 	public PortletPreferences getPortletSetup(
 			HttpServletRequest request, String portletId)
 		throws PortalException, SystemException {
@@ -286,7 +278,6 @@ public class PortletPreferencesFactoryImpl
 		return getPortletSetup(request, portletId, null);
 	}
 
-	@Override
 	public PortletPreferences getPortletSetup(
 			HttpServletRequest request, String portletId,
 			String defaultPreferences)
@@ -302,7 +293,6 @@ public class PortletPreferencesFactoryImpl
 			defaultPreferences);
 	}
 
-	@Override
 	public PortletPreferences getPortletSetup(PortletRequest portletRequest)
 		throws PortalException, SystemException {
 
@@ -313,7 +303,6 @@ public class PortletPreferencesFactoryImpl
 		return getPortletSetup(request, portletId);
 	}
 
-	@Override
 	public PortletPreferences getPortletSetup(
 			PortletRequest portletRequest, String portletId)
 		throws PortalException, SystemException {
@@ -324,7 +313,6 @@ public class PortletPreferencesFactoryImpl
 		return getPortletSetup(request, portletId);
 	}
 
-	@Override
 	public PortletPreferences getPreferences(HttpServletRequest request) {
 		PortletRequest portletRequest = (PortletRequest)request.getAttribute(
 			JavaConstants.JAVAX_PORTLET_REQUEST);
@@ -341,7 +329,6 @@ public class PortletPreferencesFactoryImpl
 		return preferences;
 	}
 
-	@Override
 	public PreferencesValidator getPreferencesValidator(Portlet portlet) {
 		return PortalUtil.getPreferencesValidator(portlet);
 	}
