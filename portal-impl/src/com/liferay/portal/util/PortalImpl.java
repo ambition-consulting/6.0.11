@@ -135,6 +135,7 @@ import com.liferay.portlet.PortletConfigImpl;
 import com.liferay.portlet.PortletContextImpl;
 import com.liferay.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portlet.PortletPreferencesImpl;
+import com.liferay.portlet.PortletPreferencesThreadLocal;
 import com.liferay.portlet.PortletPreferencesWrapper;
 import com.liferay.portlet.PortletQNameUtil;
 import com.liferay.portlet.PortletRequestImpl;
@@ -167,7 +168,6 @@ import java.io.IOException;
 import java.io.Serializable;
 
 import java.lang.reflect.Method;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -481,6 +481,7 @@ public class PortalImpl implements Portal {
 	 * Adds the description for a page. This appends to the existing page
 	 * description.
 	 */
+	@Override
 	public void addPageDescription(
 		String description, HttpServletRequest request) {
 
@@ -497,6 +498,7 @@ public class PortalImpl implements Portal {
 	/**
 	 * Adds the keywords for a page. This appends to the existing page keywords.
 	 */
+	@Override
 	public void addPageKeywords(String keywords, HttpServletRequest request) {
 		List<String> requestKeywords = (List<String>)request.getAttribute(
 			WebKeys.PAGE_KEYWORDS);
@@ -519,6 +521,7 @@ public class PortalImpl implements Portal {
 	/**
 	 * Adds the subtitle for a page. This appends to the existing page subtitle.
 	 */
+	@Override
 	public void addPageSubtitle(String subtitle, HttpServletRequest request) {
 		String requestSubtitle = (String)request.getAttribute(
 			WebKeys.PAGE_SUBTITLE);
@@ -534,6 +537,7 @@ public class PortalImpl implements Portal {
 	 * Adds the whole title for a page. This appends to the existing page whole
 	 * title.
 	 */
+	@Override
 	public void addPageTitle(String title, HttpServletRequest request) {
 		String requestTitle = (String)request.getAttribute(WebKeys.PAGE_TITLE);
 
@@ -544,6 +548,7 @@ public class PortalImpl implements Portal {
 		request.setAttribute(WebKeys.PAGE_TITLE, title);
 	}
 
+	@Override
 	public void addPortalPortEventListener(
 		PortalPortEventListener portalPortEventListener) {
 
@@ -552,6 +557,7 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public void addPortletBreadcrumbEntry(
 		HttpServletRequest request, String title, String url) {
 
@@ -569,6 +575,7 @@ public class PortalImpl implements Portal {
 		portletBreadcrumbs.add(new KeyValuePair(title, url));
 	}
 
+	@Override
 	public void addPortletDefaultResource(
 			HttpServletRequest request, Portlet portlet)
 		throws PortalException, SystemException {
@@ -582,6 +589,7 @@ public class PortalImpl implements Portal {
 		addDefaultResource(themeDisplay, layout, portlet, false);
 	}
 
+	@Override
 	public String addPreservedParameters(
 		ThemeDisplay themeDisplay, Layout layout, String url,
 		boolean doAsUser) {
@@ -614,6 +622,7 @@ public class PortalImpl implements Portal {
 		return url;
 	}
 
+	@Override
 	public String addPreservedParameters(
 		ThemeDisplay themeDisplay, String url) {
 
@@ -621,6 +630,7 @@ public class PortalImpl implements Portal {
 			themeDisplay, themeDisplay.getLayout(), url, true);
 	}
 
+	@Override
 	public void clearRequestParameters(RenderRequest renderRequest) {
 
 		// Clear the render parameters if they were set during processAction
@@ -633,6 +643,7 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public void copyRequestParameters(
 		ActionRequest actionRequest, ActionResponse actionResponse) {
 
@@ -666,6 +677,7 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public String escapeRedirect(String url) {
 		if (Validator.isNull(url) || !HttpUtil.hasDomain(url)) {
 			return url;
@@ -742,6 +754,7 @@ public class PortalImpl implements Portal {
 		return url;
 	}
 
+	@Override
 	public String generateRandomKey(HttpServletRequest request, String input) {
 		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -756,14 +769,17 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public Set<String> getAuthTokenIgnoreActions() {
 		return _authTokenIgnoreActions;
 	}
 
+	@Override
 	public Set<String> getAuthTokenIgnorePortlets() {
 		return _authTokenIgnorePortlets;
 	}
 
+	@Override
 	public BaseModel<?> getBaseModel(Resource resource)
 		throws PortalException, SystemException {
 
@@ -776,6 +792,7 @@ public class PortalImpl implements Portal {
 		return getBaseModel(modelName, primKey);
 	}
 
+	@Override
 	public BaseModel<?> getBaseModel(ResourcePermission resourcePermission)
 		throws PortalException, SystemException {
 
@@ -785,6 +802,7 @@ public class PortalImpl implements Portal {
 		return getBaseModel(modelName, primKey);
 	}
 
+	@Override
 	public BaseModel<?> getBaseModel(String modelName, String primKey)
 		throws PortalException, SystemException {
 
@@ -837,6 +855,7 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public long getBasicAuthUserId(HttpServletRequest request)
 		throws PortalException, SystemException {
 
@@ -845,6 +864,7 @@ public class PortalImpl implements Portal {
 		return getBasicAuthUserId(request, companyId);
 	}
 
+	@Override
 	public long getBasicAuthUserId(HttpServletRequest request, long companyId)
 		throws PortalException, SystemException {
 
@@ -903,10 +923,13 @@ public class PortalImpl implements Portal {
 	/**
 	 * @deprecated {@link #getCDNHost(boolean)}
 	 */
+	@Deprecated
+	@Override
 	public String getCDNHost() {
 		return getCDNHostHttp();
 	}
 
+	@Override
 	public String getCDNHost(boolean secure) {
 		if (secure) {
 			return getCDNHostHttps();
@@ -916,14 +939,17 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public String getCDNHostHttp() {
 		return _cdnHostHttp;
 	}
 
+	@Override
 	public String getCDNHostHttps() {
 		return _cdnHostHttps;
 	}
 
+	@Override
 	public String getClassName(long classNameId) {
 		try {
 			ClassName className = ClassNameLocalServiceUtil.getClassName(
@@ -937,14 +963,17 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public long getClassNameId(Class<?> classObj) {
 		return ClassNameLocalServiceUtil.getClassNameId(classObj);
 	}
 
+	@Override
 	public long getClassNameId(String value) {
 		return ClassNameLocalServiceUtil.getClassNameId(value);
 	}
 
+	@Override
 	public String getClassNamePortletId(String className) {
 		String portletId = StringPool.BLANK;
 
@@ -976,6 +1005,7 @@ public class PortalImpl implements Portal {
 		return portletId;
 	}
 
+	@Override
 	public String getCommunityLoginURL(ThemeDisplay themeDisplay)
 		throws PortalException, SystemException {
 
@@ -1008,14 +1038,17 @@ public class PortalImpl implements Portal {
 		return null;
 	}
 
+	@Override
 	public String[] getCommunityPermissions(HttpServletRequest request) {
 		return request.getParameterValues("communityPermissions");
 	}
 
+	@Override
 	public String[] getCommunityPermissions(PortletRequest portletRequest) {
 		return portletRequest.getParameterValues("communityPermissions");
 	}
 
+	@Override
 	public Company getCompany(HttpServletRequest request)
 		throws PortalException, SystemException {
 
@@ -1045,32 +1078,39 @@ public class PortalImpl implements Portal {
 		return company;
 	}
 
+	@Override
 	public Company getCompany(PortletRequest portletRequest)
 		throws PortalException, SystemException {
 
 		return getCompany(getHttpServletRequest(portletRequest));
 	}
 
+	@Override
 	public long getCompanyId(HttpServletRequest request) {
 		return PortalInstances.getCompanyId(request);
 	}
 
+	@Override
 	public long getCompanyId(PortletRequest portletRequest) {
 		return getCompanyId(getHttpServletRequest(portletRequest));
 	}
 
+	@Override
 	public long[] getCompanyIds() {
 		return PortalInstances.getCompanyIds();
 	}
 
+	@Override
 	public String getComputerAddress() {
 		return _computerAddress;
 	}
 
+	@Override
 	public String getComputerName() {
 		return _computerName;
 	}
 
+	@Override
 	public String getControlPanelCategory(
 			String portletId, ThemeDisplay themeDisplay)
 		throws SystemException {
@@ -1089,6 +1129,7 @@ public class PortalImpl implements Portal {
 		return StringPool.BLANK;
 	}
 
+	@Override
 	public String getControlPanelFullURL(
 			long scopeGroupId, String ppid, Map<String, String[]> params)
 		throws PortalException, SystemException {
@@ -1124,6 +1165,7 @@ public class PortalImpl implements Portal {
 		return sb.toString();
 	}
 
+	@Override
 	public List<Portlet> getControlPanelPortlets(
 			String category, ThemeDisplay themeDisplay)
 		throws SystemException {
@@ -1143,6 +1185,7 @@ public class PortalImpl implements Portal {
 		return filterControlPanelPortlets(portletsSet, category, themeDisplay);
 	}
 
+	@Override
 	public String getCurrentCompleteURL(HttpServletRequest request) {
 		String currentCompleteURL = (String)request.getAttribute(
 			WebKeys.CURRENT_COMPLETE_URL);
@@ -1157,6 +1200,7 @@ public class PortalImpl implements Portal {
 		return currentCompleteURL;
 	}
 
+	@Override
 	public String getCurrentURL(HttpServletRequest request) {
 		String currentURL = (String)request.getAttribute(WebKeys.CURRENT_URL);
 
@@ -1199,18 +1243,22 @@ public class PortalImpl implements Portal {
 		return currentURL;
 	}
 
+	@Override
 	public String getCurrentURL(PortletRequest portletRequest) {
 		return (String)portletRequest.getAttribute(WebKeys.CURRENT_URL);
 	}
 
+	@Override
 	public String getCustomSQLFunctionIsNotNull() {
 		return PropsValues.CUSTOM_SQL_FUNCTION_ISNOTNULL;
 	}
 
+	@Override
 	public String getCustomSQLFunctionIsNull() {
 		return PropsValues.CUSTOM_SQL_FUNCTION_ISNULL;
 	}
 
+	@Override
 	public Date getDate(int month, int day, int year) {
 		try {
 			return getDate(month, day, year, null);
@@ -1220,6 +1268,7 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public Date getDate(
 			int month, int day, int year, int hour, int min, PortalException pe)
 		throws PortalException {
@@ -1227,6 +1276,7 @@ public class PortalImpl implements Portal {
 		return getDate(month, day, year, hour, min, null, pe);
 	}
 
+	@Override
 	public Date getDate(
 			int month, int day, int year, int hour, int min, TimeZone timeZone,
 			PortalException pe)
@@ -1271,12 +1321,14 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public Date getDate(int month, int day, int year, PortalException pe)
 		throws PortalException {
 
 		return getDate(month, day, year, null, pe);
 	}
 
+	@Override
 	public Date getDate(
 			int month, int day, int year, TimeZone timeZone, PortalException pe)
 		throws PortalException {
@@ -1284,10 +1336,12 @@ public class PortalImpl implements Portal {
 		return getDate(month, day, year, -1, -1, timeZone, pe);
 	}
 
+	@Override
 	public long getDefaultCompanyId() {
 		return PortalInstances.getDefaultCompanyId();
 	}
 
+	@Override
 	public long getDigestAuthUserId(HttpServletRequest request)
 		throws PortalException, SystemException {
 
@@ -1347,6 +1401,7 @@ public class PortalImpl implements Portal {
 		return userId;
 	}
 
+	@Override
 	public Map<String, Serializable> getExpandoBridgeAttributes(
 			ExpandoBridge expandoBridge, PortletRequest portletRequest)
 		throws PortalException, SystemException {
@@ -1380,6 +1435,7 @@ public class PortalImpl implements Portal {
 		return attributes;
 	}
 
+	@Override
 	public String getFacebookURL(
 			Portlet portlet, String facebookCanvasPageURL,
 			ThemeDisplay themeDisplay)
@@ -1396,6 +1452,7 @@ public class PortalImpl implements Portal {
 		return facebookURL;
 	}
 
+	@Override
 	public String getFirstPageLayoutTypes(PageContext pageContext) {
 		StringBundler sb = new StringBundler();
 
@@ -1415,10 +1472,12 @@ public class PortalImpl implements Portal {
 		return sb.toString();
 	}
 
+	@Override
 	public String getGlobalLibDir() {
 		return _globalLibDir;
 	}
 
+	@Override
 	public String getGoogleGadgetURL(
 			Portlet portlet, ThemeDisplay themeDisplay)
 		throws PortalException, SystemException {
@@ -1427,14 +1486,17 @@ public class PortalImpl implements Portal {
 			portlet, PropsValues.GOOGLE_GADGET_SERVLET_MAPPING, themeDisplay);
 	}
 
+	@Override
 	public String[] getGuestPermissions(HttpServletRequest request) {
 		return request.getParameterValues("guestPermissions");
 	}
 
+	@Override
 	public String[] getGuestPermissions(PortletRequest portletRequest) {
 		return portletRequest.getParameterValues("guestPermissions");
 	}
 
+	@Override
 	public String getHomeURL(HttpServletRequest request)
 		throws PortalException, SystemException {
 
@@ -1451,6 +1513,7 @@ public class PortalImpl implements Portal {
 		return portalURL + _pathContext + homeURL;
 	}
 
+	@Override
 	public String getHost(HttpServletRequest request) {
 		request = getOriginalServletRequest(request);
 
@@ -1472,10 +1535,12 @@ public class PortalImpl implements Portal {
 		return host;
 	}
 
+	@Override
 	public String getHost(PortletRequest portletRequest) {
 		return getHost(getHttpServletRequest(portletRequest));
 	}
 
+	@Override
 	public HttpServletRequest getHttpServletRequest(
 		PortletRequest portletRequest) {
 
@@ -1485,6 +1550,7 @@ public class PortalImpl implements Portal {
 		return portletRequestImpl.getHttpServletRequest();
 	}
 
+	@Override
 	public HttpServletResponse getHttpServletResponse(
 		PortletResponse portletResponse) {
 
@@ -1494,14 +1560,17 @@ public class PortalImpl implements Portal {
 		return portletResponseImpl.getHttpServletResponse();
 	}
 
+	@Override
 	public String getJsSafePortletId(String portletId) {
 		return JS.getSafeName(portletId);
 	}
 
+	@Override
 	public String getLayoutActualURL(Layout layout) {
 		return getLayoutActualURL(layout, getPathMain());
 	}
 
+	@Override
 	public String getLayoutActualURL(Layout layout, String mainPath) {
 		Map<String, String> variables = new HashMap<String, String>();
 
@@ -1529,6 +1598,7 @@ public class PortalImpl implements Portal {
 		return layoutSettings.getURL(variables);
 	}
 
+	@Override
 	public String getLayoutActualURL(
 			long groupId, boolean privateLayout, String mainPath,
 			String friendlyURL)
@@ -1538,6 +1608,7 @@ public class PortalImpl implements Portal {
 			groupId, privateLayout, mainPath, friendlyURL, null, null);
 	}
 
+	@Override
 	public String getLayoutActualURL(
 			long groupId, boolean privateLayout, String mainPath,
 			String friendlyURL, Map<String, String[]> params,
@@ -1591,6 +1662,7 @@ public class PortalImpl implements Portal {
 		return layoutActualURL;
 	}
 
+	@Override
 	public String getLayoutEditPage(Layout layout) {
 		LayoutSettings layoutSettings = LayoutSettings.getInstance(
 			layout.getType());
@@ -1598,12 +1670,14 @@ public class PortalImpl implements Portal {
 		return layoutSettings.getEditPage();
 	}
 
+	@Override
 	public String getLayoutEditPage(String type) {
 		LayoutSettings layoutSettings = LayoutSettings.getInstance(type);
 
 		return layoutSettings.getEditPage();
 	}
 
+	@Override
 	public String getLayoutFriendlyURL(
 			Layout layout, ThemeDisplay themeDisplay)
 		throws PortalException, SystemException {
@@ -1714,6 +1788,7 @@ public class PortalImpl implements Portal {
 			layoutFriendlyURL;
 	}
 
+	@Override
 	public String getLayoutFriendlyURL(
 			Layout layout, ThemeDisplay themeDisplay, Locale locale)
 		throws PortalException, SystemException {
@@ -1763,12 +1838,14 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public String getLayoutFullURL(Layout layout, ThemeDisplay themeDisplay)
 		throws PortalException, SystemException {
 
 		return getLayoutFullURL(layout, themeDisplay, true);
 	}
 
+	@Override
 	public String getLayoutFullURL(
 			Layout layout, ThemeDisplay themeDisplay, boolean doAsUser)
 		throws PortalException, SystemException {
@@ -1784,6 +1861,7 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public String getLayoutFullURL(long groupId, String portletId)
 		throws PortalException, SystemException {
 
@@ -1836,12 +1914,14 @@ public class PortalImpl implements Portal {
 		return sb.toString();
 	}
 
+	@Override
 	public String getLayoutFullURL(ThemeDisplay themeDisplay)
 		throws PortalException, SystemException {
 
 		return getLayoutFullURL(themeDisplay.getLayout(), themeDisplay);
 	}
 
+	@Override
 	public String getLayoutSetFriendlyURL(
 			LayoutSet layoutSet, ThemeDisplay themeDisplay)
 		throws PortalException, SystemException {
@@ -1916,6 +1996,7 @@ public class PortalImpl implements Portal {
 		return _pathContext + friendlyURL + group.getFriendlyURL();
 	}
 
+	@Override
 	public String getLayoutTarget(Layout layout) {
 		UnicodeProperties typeSettingsProps =
 			layout.getTypeSettingsProperties();
@@ -1932,12 +2013,14 @@ public class PortalImpl implements Portal {
 		return target;
 	}
 
+	@Override
 	public String getLayoutURL(Layout layout, ThemeDisplay themeDisplay)
 		throws PortalException, SystemException {
 
 		return getLayoutURL(layout, themeDisplay, true);
 	}
 
+	@Override
 	public String getLayoutURL(
 			Layout layout, ThemeDisplay themeDisplay, boolean doAsUser)
 		throws PortalException, SystemException {
@@ -1966,12 +2049,14 @@ public class PortalImpl implements Portal {
 		return layoutURL;
 	}
 
+	@Override
 	public String getLayoutURL(ThemeDisplay themeDisplay)
 		throws PortalException, SystemException {
 
 		return getLayoutURL(themeDisplay.getLayout(), themeDisplay);
 	}
 
+	@Override
 	public String getLayoutViewPage(Layout layout) {
 		LayoutSettings layoutSettings = LayoutSettings.getInstance(
 			layout.getType());
@@ -1979,12 +2064,14 @@ public class PortalImpl implements Portal {
 		return layoutSettings.getViewPage();
 	}
 
+	@Override
 	public String getLayoutViewPage(String type) {
 		LayoutSettings layoutSettings = LayoutSettings.getInstance(type);
 
 		return layoutSettings.getViewPage();
 	}
 
+	@Override
 	public LiferayPortletResponse getLiferayPortletResponse(
 		PortletResponse portletResponse) {
 
@@ -1994,6 +2081,7 @@ public class PortalImpl implements Portal {
 		return portletResponseImpl;
 	}
 
+	@Override
 	public Locale getLocale(HttpServletRequest request) {
 		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -2008,10 +2096,12 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public Locale getLocale(RenderRequest renderRequest) {
 		return getLocale(getHttpServletRequest(renderRequest));
 	}
 
+	@Override
 	public String getMailId(String mx, String popPortletPrefix, Object... ids) {
 		StringBundler sb = new StringBundler(ids.length * 2 + 7);
 
@@ -2045,6 +2135,7 @@ public class PortalImpl implements Portal {
 		return sb.toString();
 	}
 
+	@Override
 	public String getNetvibesURL(
 			Portlet portlet, ThemeDisplay themeDisplay)
 		throws PortalException, SystemException {
@@ -2053,6 +2144,7 @@ public class PortalImpl implements Portal {
 			portlet, PropsValues.NETVIBES_SERVLET_MAPPING, themeDisplay);
 	}
 
+	@Override
 	public HttpServletRequest getOriginalServletRequest(
 		HttpServletRequest request) {
 
@@ -2071,6 +2163,7 @@ public class PortalImpl implements Portal {
 		return originalRequest;
 	}
 
+	@Override
 	public String getOuterPortletId(HttpServletRequest request) {
 		String outerPortletId = (String)request.getAttribute(
 			WebKeys.OUTER_PORTLET_ID);
@@ -2082,6 +2175,7 @@ public class PortalImpl implements Portal {
 		return outerPortletId;
 	}
 
+	@Override
 	public long getParentGroupId(long groupId)
 		throws PortalException, SystemException {
 
@@ -2100,34 +2194,42 @@ public class PortalImpl implements Portal {
 		return parentGroupId;
 	}
 
+	@Override
 	public String getPathContext() {
 		return _pathContext;
 	}
 
+	@Override
 	public String getPathFriendlyURLPrivateGroup() {
 		return _pathFriendlyURLPrivateGroup;
 	}
 
+	@Override
 	public String getPathFriendlyURLPrivateUser() {
 		return _pathFriendlyURLPrivateUser;
 	}
 
+	@Override
 	public String getPathFriendlyURLPublic() {
 		return _pathFriendlyURLPublic;
 	}
 
+	@Override
 	public String getPathImage() {
 		return _pathImage;
 	}
 
+	@Override
 	public String getPathMain() {
 		return _pathMain;
 	}
 
+	@Override
 	public String getPathProxy() {
 		return _pathProxy;
 	}
 
+	@Override
 	public long getPlidFromFriendlyURL(long companyId, String friendlyURL) {
 		if (Validator.isNull(friendlyURL)) {
 			return LayoutConstants.DEFAULT_PLID;
@@ -2191,6 +2293,7 @@ public class PortalImpl implements Portal {
 		return LayoutConstants.DEFAULT_PLID;
 	}
 
+	@Override
 	public long getPlidFromPortletId(
 			long groupId, boolean privateLayout, String portletId)
 		throws PortalException, SystemException {
@@ -2250,6 +2353,7 @@ public class PortalImpl implements Portal {
 		return plid;
 	}
 
+	@Override
 	public long getPlidFromPortletId(long groupId, String portletId)
 		throws PortalException, SystemException {
 
@@ -2270,37 +2374,45 @@ public class PortalImpl implements Portal {
 		return plid;
 	}
 
+	@Override
 	public String getPortalLibDir() {
 		return _portalLibDir;
 	}
 
+	@Override
 	public int getPortalPort() {
 		return _portalPort.get();
 	}
 
+	@Override
 	public Properties getPortalProperties() {
 		return PropsUtil.getProperties();
 	}
 
+	@Override
 	public String getPortalURL(HttpServletRequest request) {
 		return getPortalURL(request, request.isSecure());
 	}
 
+	@Override
 	public String getPortalURL(HttpServletRequest request, boolean secure) {
 		return getPortalURL(
 			request.getServerName(), request.getServerPort(), secure);
 	}
 
+	@Override
 	public String getPortalURL(PortletRequest portletRequest) {
 		return getPortalURL(portletRequest, portletRequest.isSecure());
 	}
 
+	@Override
 	public String getPortalURL(PortletRequest portletRequest, boolean secure) {
 		return getPortalURL(
 			portletRequest.getServerName(), portletRequest.getServerPort(),
 			secure);
 	}
 
+	@Override
 	public String getPortalURL(
 		String serverName, int serverPort, boolean secure) {
 
@@ -2357,6 +2469,7 @@ public class PortalImpl implements Portal {
 		return sb.toString();
 	}
 
+	@Override
 	public String getPortalURL(ThemeDisplay themeDisplay)
 		throws PortalException, SystemException {
 
@@ -2378,10 +2491,12 @@ public class PortalImpl implements Portal {
 			serverName, themeDisplay.getServerPort(), themeDisplay.isSecure());
 	}
 
+	@Override
 	public String getPortalWebDir() {
 		return _portalWebDir;
 	}
 
+	@Override
 	public Set<String> getPortletAddDefaultResourceCheckWhitelist() {
 		return _portletAddDefaultResourceCheckWhitelist;
 	}
@@ -2389,12 +2504,15 @@ public class PortalImpl implements Portal {
 	/**
 	 * @deprecated {@link #getPortletBreadcrumbs(HttpServletRequest)}
 	 */
+	@Deprecated
+	@Override
 	public List<KeyValuePair> getPortletBreadcrumbList(
 		HttpServletRequest request) {
 
 		return getPortletBreadcrumbs(request);
 	}
 
+	@Override
 	public List<KeyValuePair> getPortletBreadcrumbs(
 		HttpServletRequest request) {
 
@@ -2402,6 +2520,7 @@ public class PortalImpl implements Portal {
 			WebKeys.PORTLET_BREADCRUMBS);
 	}
 
+	@Override
 	public String getPortletDescription(
 		Portlet portlet, ServletContext servletContext, Locale locale) {
 
@@ -2414,10 +2533,12 @@ public class PortalImpl implements Portal {
 			JavaConstants.JAVAX_PORTLET_DESCRIPTION);
 	}
 
+	@Override
 	public String getPortletDescription(Portlet portlet, User user) {
 		return getPortletDescription(portlet.getPortletId(), user);
 	}
 
+	@Override
 	public String getPortletDescription(String portletId, Locale locale) {
 		return LanguageUtil.get(
 			locale,
@@ -2425,12 +2546,14 @@ public class PortalImpl implements Portal {
 				StringPool.PERIOD).concat(portletId));
 	}
 
+	@Override
 	public String getPortletDescription(String portletId, String languageId) {
 		Locale locale = LocaleUtil.fromLanguageId(languageId);
 
 		return getPortletDescription(portletId, locale);
 	}
 
+	@Override
 	public String getPortletDescription(String portletId, User user) {
 		return LanguageUtil.get(
 			user.getLocale(),
@@ -2583,6 +2706,7 @@ public class PortalImpl implements Portal {
 		return new Object[] {layout, queryString};
 	}
 
+	@Override
 	public String getPortletId(HttpServletRequest request) {
 		PortletConfigImpl portletConfigImpl =
 			(PortletConfigImpl)request.getAttribute(
@@ -2596,6 +2720,7 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public String getPortletId(PortletRequest portletRequest) {
 		PortletConfigImpl portletConfigImpl =
 			(PortletConfigImpl)portletRequest.getAttribute(
@@ -2609,19 +2734,23 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public String getPortletNamespace(String portletId) {
 		return StringPool.UNDERLINE.concat(portletId).concat(
 			StringPool.UNDERLINE);
 	}
 
+	@Override
 	public String getPortletTitle(Portlet portlet, Locale locale) {
 		return getPortletTitle(portlet.getPortletId(), locale);
 	}
 
+	@Override
 	public String getPortletTitle(Portlet portlet, String languageId) {
 		return getPortletTitle(portlet.getPortletId(), languageId);
 	}
 
+	@Override
 	public String getPortletTitle(
 		Portlet portlet, ServletContext servletContext, Locale locale) {
 
@@ -2633,10 +2762,12 @@ public class PortalImpl implements Portal {
 		return resourceBundle.getString(JavaConstants.JAVAX_PORTLET_TITLE);
 	}
 
+	@Override
 	public String getPortletTitle(Portlet portlet, User user) {
 		return getPortletTitle(portlet.getPortletId(), user);
 	}
 
+	@Override
 	public String getPortletTitle(RenderResponse renderResponse) {
 		PortletResponseImpl portletResponseImpl =
 			PortletResponseImpl.getPortletResponseImpl(renderResponse);
@@ -2644,6 +2775,7 @@ public class PortalImpl implements Portal {
 		return ((RenderResponseImpl)portletResponseImpl).getTitle();
 	}
 
+	@Override
 	public String getPortletTitle(String portletId, Locale locale) {
 		return LanguageUtil.get(
 			locale,
@@ -2651,12 +2783,14 @@ public class PortalImpl implements Portal {
 				portletId));
 	}
 
+	@Override
 	public String getPortletTitle(String portletId, String languageId) {
 		Locale locale = LocaleUtil.fromLanguageId(languageId);
 
 		return getPortletTitle(portletId, locale);
 	}
 
+	@Override
 	public String getPortletTitle(String portletId, User user) {
 		return LanguageUtil.get(
 			user.getLocale(),
@@ -2664,6 +2798,7 @@ public class PortalImpl implements Portal {
 				portletId));
 	}
 
+	@Override
 	public String getPortletXmlFileName() throws SystemException {
 		if (PrefsPropsUtil.getBoolean(
 				PropsKeys.AUTO_DEPLOY_CUSTOM_PORTLET_XML,
@@ -2676,6 +2811,7 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public PortletPreferences getPreferences(HttpServletRequest request) {
 		RenderRequest renderRequest = (RenderRequest)request.getAttribute(
 			JavaConstants.JAVAX_PORTLET_REQUEST);
@@ -2692,12 +2828,14 @@ public class PortalImpl implements Portal {
 		return preferences;
 	}
 
+	@Override
 	public PreferencesValidator getPreferencesValidator(Portlet portlet) {
 		PortletBag portletBag = PortletBagPool.get(portlet.getRootPortletId());
 
 		return portletBag.getPreferencesValidatorInstance();
 	}
 
+	@Override
 	public long getScopeGroupId(HttpServletRequest request)
 		throws PortalException, SystemException {
 
@@ -2706,6 +2844,7 @@ public class PortalImpl implements Portal {
 		return getScopeGroupId(request, portletId);
 	}
 
+	@Override
 	public long getScopeGroupId(HttpServletRequest request, String portletId)
 		throws PortalException, SystemException {
 
@@ -2771,6 +2910,7 @@ public class PortalImpl implements Portal {
 		return scopeGroupId;
 	}
 
+	@Override
 	public long getScopeGroupId(Layout layout) {
 		if (layout == null) {
 			return 0;
@@ -2780,36 +2920,44 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public long getScopeGroupId(Layout layout, String portletId) {
 		if (layout == null) {
 			return 0;
 		}
-		else {
+
+		boolean strict = PortletPreferencesThreadLocal.isStrict();
+
+		PortletPreferencesThreadLocal.setStrict(true);
+
+		try {
 			if (Validator.isNotNull(portletId)) {
-				try {
-					PortletPreferences portletSetup =
-						PortletPreferencesFactoryUtil.getLayoutPortletSetup(
-							layout, portletId);
+				PortletPreferences portletSetup =
+					PortletPreferencesFactoryUtil.getLayoutPortletSetup(
+						layout, portletId);
 
-					String scopeLayoutUuid = GetterUtil.getString(
-						portletSetup.getValue("lfr-scope-layout-uuid", null));
+				String scopeLayoutUuid = GetterUtil.getString(
+					portletSetup.getValue("lfr-scope-layout-uuid", null));
 
-					if (Validator.isNotNull(scopeLayoutUuid)) {
-						Layout scopeLayout =
-							LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
-								scopeLayoutUuid, layout.getGroupId());
+				if (Validator.isNotNull(scopeLayoutUuid)) {
+					Layout scopeLayout =
+						LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
+							scopeLayoutUuid, layout.getGroupId());
 
-						return scopeLayout.getScopeGroup().getGroupId();
-					}
-				}
-				catch (Exception e) {
+					return scopeLayout.getScopeGroup().getGroupId();
 				}
 			}
-
-			return layout.getGroupId();
 		}
+		catch (Exception e) {
+		}
+		finally {
+			PortletPreferencesThreadLocal.setStrict(strict);
+		}
+
+		return layout.getGroupId();
 	}
 
+	@Override
 	public long getScopeGroupId(long plid) {
 		Layout layout = null;
 
@@ -2822,18 +2970,21 @@ public class PortalImpl implements Portal {
 		return getScopeGroupId(layout);
 	}
 
+	@Override
 	public long getScopeGroupId(PortletRequest portletRequest)
 		throws PortalException, SystemException {
 
 		return getScopeGroupId(getHttpServletRequest(portletRequest));
 	}
 
+	@Override
 	public User getSelectedUser(HttpServletRequest request)
 		throws PortalException, SystemException {
 
 		return getSelectedUser(request, true);
 	}
 
+	@Override
 	public User getSelectedUser(
 			HttpServletRequest request, boolean checkPermission)
 		throws PortalException, SystemException {
@@ -2856,12 +3007,14 @@ public class PortalImpl implements Portal {
 		return user;
 	}
 
+	@Override
 	public User getSelectedUser(PortletRequest portletRequest)
 		throws PortalException, SystemException {
 
 		return getSelectedUser(portletRequest, true);
 	}
 
+	@Override
 	public User getSelectedUser(
 			PortletRequest portletRequest, boolean checkPermission)
 		throws PortalException, SystemException {
@@ -2870,6 +3023,7 @@ public class PortalImpl implements Portal {
 			getHttpServletRequest(portletRequest), checkPermission);
 	}
 
+	@Override
 	public ServletContext getServletContext(
 		Portlet portlet, ServletContext servletContext) {
 
@@ -2882,40 +3036,47 @@ public class PortalImpl implements Portal {
 		return portletContextImpl.getServletContext();
 	}
 
+	@Override
 	public SocialEquityActionMapping getSocialEquityActionMapping(
 		String name, String actionId) {
 
 		return ResourceActionsUtil.getSocialEquityActionMapping(name, actionId);
 	}
 
+	@Override
 	public List<SocialEquityActionMapping> getSocialEquityActionMappings(
 		String name) {
 
 		return ResourceActionsUtil.getSocialEquityActionMappings(name);
 	}
 
+	@Override
 	public String[] getSocialEquityClassNames() {
 		return ResourceActionsUtil.getSocialEquityClassNames();
 	}
 
+	@Override
 	public String getStaticResourceURL(
 		HttpServletRequest request, String uri) {
 
 		return getStaticResourceURL(request, uri, null, 0);
 	}
 
+	@Override
 	public String getStaticResourceURL(
 		HttpServletRequest request, String uri, long timestamp) {
 
 		return getStaticResourceURL(request, uri, null, timestamp);
 	}
 
+	@Override
 	public String getStaticResourceURL(
 		HttpServletRequest request, String uri, String queryString) {
 
 		return getStaticResourceURL(request, uri, queryString, 0);
 	}
 
+	@Override
 	public String getStaticResourceURL(
 		HttpServletRequest request, String uri, String queryString,
 		long timestamp) {
@@ -3052,6 +3213,7 @@ public class PortalImpl implements Portal {
 		return url;
 	}
 
+	@Override
 	public String getStrutsAction(HttpServletRequest request) {
 		String strutsAction = ParamUtil.getString(request, "struts_action");
 
@@ -3067,22 +3229,27 @@ public class PortalImpl implements Portal {
 		return _getPortletParam(request, "struts_action");
 	}
 
+	@Override
 	public String[] getSystemCommunityRoles() {
 		return _allSystemCommunityRoles;
 	}
 
+	@Override
 	public String[] getSystemGroups() {
 		return _allSystemGroups;
 	}
 
+	@Override
 	public String[] getSystemOrganizationRoles() {
 		return _allSystemOrganizationRoles;
 	}
 
+	@Override
 	public String[] getSystemRoles() {
 		return _allSystemRoles;
 	}
 
+	@Override
 	public UploadServletRequest getUploadServletRequest(
 		HttpServletRequest request) {
 
@@ -3124,6 +3291,7 @@ public class PortalImpl implements Portal {
 		return uploadRequest;
 	}
 
+	@Override
 	public UploadPortletRequest getUploadPortletRequest(
 		PortletRequest portletRequest) {
 
@@ -3145,10 +3313,12 @@ public class PortalImpl implements Portal {
 				portletRequestImpl.getPortletName()));
 	}
 
+	@Override
 	public Date getUptime() {
 		return _UP_TIME;
 	}
 
+	@Override
 	public String getURLWithSessionId(String url, String sessionId) {
 		if (!PropsValues.SESSION_ENABLE_URL_WITH_SESSION_ID) {
 			return url;
@@ -3198,6 +3368,7 @@ public class PortalImpl implements Portal {
 		return sb.toString();
 	}
 
+	@Override
 	public User getUser(HttpServletRequest request)
 		throws PortalException, SystemException {
 
@@ -3230,12 +3401,14 @@ public class PortalImpl implements Portal {
 		return user;
 	}
 
+	@Override
 	public User getUser(PortletRequest portletRequest)
 		throws PortalException, SystemException {
 
 		return getUser(getHttpServletRequest(portletRequest));
 	}
 
+	@Override
 	public String getUserEmailAddress(long userId) throws SystemException {
 		try {
 			User user = UserLocalServiceUtil.getUserById(userId);
@@ -3247,6 +3420,7 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public long getUserId(HttpServletRequest request) {
 		Long userIdObj = (Long)request.getAttribute(WebKeys.USER_ID);
 
@@ -3308,15 +3482,18 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public long getUserId(PortletRequest portletRequest) {
 		return getUserId(getHttpServletRequest(portletRequest));
 	}
 
+	@Override
 	public String getUserName(long userId, String defaultUserName) {
 		return getUserName(
 			userId, defaultUserName, UserAttributes.USER_NAME_FULL);
 	}
 
+	@Override
 	public String getUserName(
 		long userId, String defaultUserName, HttpServletRequest request) {
 
@@ -3324,12 +3501,14 @@ public class PortalImpl implements Portal {
 			userId, defaultUserName, UserAttributes.USER_NAME_FULL, request);
 	}
 
+	@Override
 	public String getUserName(
 		long userId, String defaultUserName, String userAttribute) {
 
 		return getUserName(userId, defaultUserName, userAttribute, null);
 	}
 
+	@Override
 	public String getUserName(
 		long userId, String defaultUserName, String userAttribute,
 		HttpServletRequest request) {
@@ -3372,20 +3551,24 @@ public class PortalImpl implements Portal {
 		return userName;
 	}
 
+	@Override
 	public String getUserPassword(HttpServletRequest request) {
 		HttpSession session = request.getSession();
 
 		return getUserPassword(session);
 	}
 
+	@Override
 	public String getUserPassword(HttpSession session) {
 		return (String)session.getAttribute(WebKeys.USER_PASSWORD);
 	}
 
+	@Override
 	public String getUserPassword(PortletRequest portletRequest) {
 		return getUserPassword(getHttpServletRequest(portletRequest));
 	}
 
+	@Override
 	public String getUserValue(long userId, String param, String defaultValue)
 		throws SystemException {
 
@@ -3404,6 +3587,7 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public long getValidUserId(long companyId, long userId)
 		throws PortalException, SystemException {
 
@@ -3422,6 +3606,7 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public String getWidgetURL(Portlet portlet, ThemeDisplay themeDisplay)
 		throws PortalException, SystemException {
 
@@ -3429,6 +3614,7 @@ public class PortalImpl implements Portal {
 			portlet, PropsValues.WIDGET_SERVLET_MAPPING, themeDisplay);
 	}
 
+	@Override
 	public boolean isAllowAddPortletDefaultResource(
 			HttpServletRequest request, Portlet portlet)
 		throws PortalException, SystemException {
@@ -3576,6 +3762,7 @@ public class PortalImpl implements Portal {
 		return false;
 	}
 
+	@Override
 	public boolean isCommunityAdmin(User user, long groupId) throws Exception {
 		PermissionChecker permissionChecker =
 			PermissionCheckerFactoryUtil.create(user, true);
@@ -3583,6 +3770,7 @@ public class PortalImpl implements Portal {
 		return permissionChecker.isCommunityAdmin(groupId);
 	}
 
+	@Override
 	public boolean isCommunityOwner(User user, long groupId) throws Exception {
 		PermissionChecker permissionChecker =
 			PermissionCheckerFactoryUtil.create(user, true);
@@ -3590,6 +3778,7 @@ public class PortalImpl implements Portal {
 		return permissionChecker.isCommunityOwner(groupId);
 	}
 
+	@Override
 	public boolean isCompanyAdmin(User user) throws Exception {
 		PermissionChecker permissionChecker =
 			PermissionCheckerFactoryUtil.create(user, true);
@@ -3597,6 +3786,7 @@ public class PortalImpl implements Portal {
 		return permissionChecker.isCompanyAdmin();
 	}
 
+	@Override
 	public boolean isControlPanelPortlet(
 			String portletId, String category, ThemeDisplay themeDisplay)
 		throws SystemException {
@@ -3613,6 +3803,7 @@ public class PortalImpl implements Portal {
 		return false;
 	}
 
+	@Override
 	public boolean isControlPanelPortlet(
 			String portletId, ThemeDisplay themeDisplay)
 		throws SystemException {
@@ -3626,40 +3817,47 @@ public class PortalImpl implements Portal {
 		return false;
 	}
 
+	@Override
 	public boolean isLayoutFirstPageable(Layout layout) {
 		LayoutSettings layoutSettings = LayoutSettings.getInstance(layout);
 
 		return layoutSettings.isFirstPageable();
 	}
 
+	@Override
 	public boolean isLayoutFirstPageable(String type) {
 		LayoutSettings layoutSettings = LayoutSettings.getInstance(type);
 
 		return layoutSettings.isFirstPageable();
 	}
 
+	@Override
 	public boolean isLayoutFriendliable(Layout layout) {
 		LayoutSettings layoutSettings = LayoutSettings.getInstance(layout);
 
 		return layoutSettings.isURLFriendliable();
 	}
 
+	@Override
 	public boolean isLayoutFriendliable(String type) {
 		LayoutSettings layoutSettings = LayoutSettings.getInstance(type);
 
 		return layoutSettings.isURLFriendliable();
 	}
 
+	@Override
 	public boolean isLayoutParentable(Layout layout) {
 		return isLayoutParentable(layout.getType());
 	}
 
+	@Override
 	public boolean isLayoutParentable(String type) {
 		LayoutSettings layoutSettings = LayoutSettings.getInstance(type);
 
 		return layoutSettings.isParentable();
 	}
 
+	@Override
 	public boolean isLayoutSitemapable(Layout layout) {
 		if (layout.isPrivateLayout()) {
 			return false;
@@ -3670,6 +3868,7 @@ public class PortalImpl implements Portal {
 		return layoutSettings.isSitemapable();
 	}
 
+	@Override
 	public boolean isMethodGet(PortletRequest portletRequest) {
 		HttpServletRequest request = getHttpServletRequest(portletRequest);
 
@@ -3683,6 +3882,7 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public boolean isMethodPost(PortletRequest portletRequest) {
 		HttpServletRequest request = getHttpServletRequest(portletRequest);
 
@@ -3696,14 +3896,17 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public boolean isOmniadmin(long userId) {
 		return OmniadminUtil.isOmniadmin(userId);
 	}
 
+	@Override
 	public boolean isReservedParameter(String name) {
 		return _reservedParams.contains(name);
 	}
 
+	@Override
 	public boolean isSystemGroup(String groupName) {
 		if (groupName == null) {
 			return false;
@@ -3722,6 +3925,7 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public boolean isSystemRole(String roleName) {
 		if (roleName == null) {
 			return false;
@@ -3756,10 +3960,12 @@ public class PortalImpl implements Portal {
 		return false;
 	}
 
+	@Override
 	public boolean isUpdateAvailable() throws SystemException {
 		return PluginPackageUtil.isUpdateAvailable();
 	}
 
+	@Override
 	public boolean isValidResourceId(String resourceId) {
 		if (Validator.isNull(resourceId)) {
 			return true;
@@ -3774,12 +3980,14 @@ public class PortalImpl implements Portal {
 		return true;
 	}
 
+	@Override
 	public void removePortalPortEventListener(
 		PortalPortEventListener portalPortEventListener) {
 
 		_portalPortEventListeners.remove(portalPortEventListener);
 	}
 
+	@Override
 	public String renderPage(
 			ServletContext servletContext, HttpServletRequest request,
 			HttpServletResponse response, String path)
@@ -3796,6 +4004,7 @@ public class PortalImpl implements Portal {
 		return stringResponse.getString();
 	}
 
+	@Override
 	public String renderPortlet(
 			ServletContext servletContext, HttpServletRequest request,
 			HttpServletResponse response, Portlet portlet, String queryString,
@@ -3807,6 +4016,7 @@ public class PortalImpl implements Portal {
 			null, writeOutput);
 	}
 
+	@Override
 	public String renderPortlet(
 			ServletContext servletContext, HttpServletRequest request,
 			HttpServletResponse response, Portlet portlet, String queryString,
@@ -3819,6 +4029,7 @@ public class PortalImpl implements Portal {
 			columnPos, columnCount, null, writeOutput);
 	}
 
+	@Override
 	public String renderPortlet(
 			ServletContext servletContext, HttpServletRequest request,
 			HttpServletResponse response, Portlet portlet, String queryString,
@@ -3901,6 +4112,7 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public void sendError(
 			Exception e, ActionRequest actionRequest,
 			ActionResponse actionResponse)
@@ -3909,6 +4121,7 @@ public class PortalImpl implements Portal {
 		sendError(0, e, actionRequest, actionResponse);
 	}
 
+	@Override
 	public void sendError(
 			Exception e, HttpServletRequest request,
 			HttpServletResponse response)
@@ -3917,6 +4130,7 @@ public class PortalImpl implements Portal {
 		sendError(0, e, request, response);
 	}
 
+	@Override
 	public void sendError(
 			int status, Exception e, ActionRequest actionRequest,
 			ActionResponse actionResponse)
@@ -3935,6 +4149,7 @@ public class PortalImpl implements Portal {
 		actionResponse.sendRedirect(sb.toString());
 	}
 
+	@Override
 	public void sendError(
 			int status, Exception e, HttpServletRequest request,
 			HttpServletResponse response)
@@ -4048,6 +4263,7 @@ public class PortalImpl implements Portal {
 	 * Sets the description for a page. This overrides the existing page
 	 * description.
 	 */
+	@Override
 	public void setPageDescription(
 		String description, HttpServletRequest request) {
 
@@ -4057,6 +4273,7 @@ public class PortalImpl implements Portal {
 	/**
 	 * Sets the keywords for a page. This overrides the existing page keywords.
 	 */
+	@Override
 	public void setPageKeywords(String keywords, HttpServletRequest request) {
 		request.removeAttribute(WebKeys.PAGE_KEYWORDS);
 
@@ -4066,6 +4283,7 @@ public class PortalImpl implements Portal {
 	/**
 	 * Sets the subtitle for a page. This overrides the existing page subtitle.
 	 */
+	@Override
 	public void setPageSubtitle(String subtitle, HttpServletRequest request) {
 		request.setAttribute(WebKeys.PAGE_SUBTITLE, subtitle);
 	}
@@ -4074,6 +4292,7 @@ public class PortalImpl implements Portal {
 	 * Sets the whole title for a page. This overrides the existing page whole
 	 * title.
 	 */
+	@Override
 	public void setPageTitle(String title, HttpServletRequest request) {
 		request.setAttribute(WebKeys.PAGE_TITLE, title);
 	}
@@ -4081,6 +4300,7 @@ public class PortalImpl implements Portal {
 	/**
 	 * Sets the port obtained on the first request to the portal.
 	 */
+	@Override
 	public void setPortalPort(HttpServletRequest request) {
 		if (_portalPort.get() == -1) {
 			int portalPort = request.getServerPort();
@@ -4091,6 +4311,7 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public void storePreferences(PortletPreferences preferences)
 		throws IOException, ValidatorException {
 
@@ -4103,6 +4324,7 @@ public class PortalImpl implements Portal {
 		preferencesImpl.store();
 	}
 
+	@Override
 	public String transformCustomSQL(String sql) {
 		if ((_customSqlClassNames == null) ||
 			(_customSqlClassNameIds == null)) {
@@ -4114,6 +4336,7 @@ public class PortalImpl implements Portal {
 			sql, _customSqlClassNames, _customSqlClassNameIds);
 	}
 
+	@Override
 	public PortletMode updatePortletMode(
 		String portletId, User user, Layout layout, PortletMode portletMode,
 		HttpServletRequest request) {
@@ -4230,6 +4453,7 @@ public class PortalImpl implements Portal {
 		}
 	}
 
+	@Override
 	public WindowState updateWindowState(
 		String portletId, User user, Layout layout, WindowState windowState,
 		HttpServletRequest request) {

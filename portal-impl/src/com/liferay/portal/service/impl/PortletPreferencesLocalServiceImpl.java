@@ -249,6 +249,7 @@ public class PortletPreferencesLocalServiceImpl
 		}
 	}
 
+	@Override
 	public javax.portlet.PortletPreferences getStrictPreferences(
 			long companyId, long ownerId, int ownerType, long plid,
 			String portletId)
@@ -267,6 +268,7 @@ public class PortletPreferencesLocalServiceImpl
 		}
 	}
 
+	@Override
 	public javax.portlet.PortletPreferences getStrictPreferences(
 			PortletPreferencesIds portletPreferencesIds)
 		throws SystemException {
@@ -346,8 +348,9 @@ public class PortletPreferencesLocalServiceImpl
 					ownerId, ownerType, plid, portletId);
 
 			if (portletPreferences == null) {
-				if ((portlet != null) && portlet.isUndeployedPortlet() &&
-					PortletPreferencesThreadLocal.isStrict()) {
+				if (PortletPreferencesThreadLocal.isStrict() &&
+					(Validator.isNull(defaultPreferences) ||
+					((portlet != null) && portlet.isUndeployedPortlet()))) {
 
 					return new PortletPreferencesImpl();
 				}
